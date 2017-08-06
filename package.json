@@ -28,7 +28,7 @@
     ".build-index.d.ts-clear": "cd dist/ && find . -name \\*.js -delete && cd .. && rimraf temp",
     ".build-dist": "set NODE_ENV=production && webpack --config webpack.dist.config.js",
     "test": "npm run dist && jest --coverage --no-cache",
-    "test-only": "jest --coverage --no-cache",
+    "test-only": "jest --coverage --verbose --no-cache",
     "test-watch": "jest --watch --verbose",
     "publish-push": "npm version patch && npm publish && git push",
     "tpp": "npm run test-publish-push",

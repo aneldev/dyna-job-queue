@@ -2,7 +2,7 @@ export interface IQJob {
     command: string;
     data: any;
     priority: number;
-    callback: Function;
+    _callback: Function;
     _internalPriority: number;
 }
 export declare class DynaJobQueue {

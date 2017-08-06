@@ -5,21 +5,21 @@ import {DynaJobQueue, IQJob} from '../src';
 
 // help: https://facebook.github.io/jest/docs/expect.html
 
-let executedJobs: IQJob[] = [];
-
-let queue = new DynaJobQueue();
-
-// this simulates a worker for this jobs, for the test we push these jobs to executedJobs array
-queue.onJob = (job: IQJob, done: () => void) => {
-  setTimeout(() => {
-    executedJobs.push(job);
-    done();
-  }, 100);
-};
-
-const getLastExecutedJob = (): IQJob => executedJobs[executedJobs.length - 1];
 
 describe('Dyna Job Queue - using addJob()', () => {
+
+  let queue = new DynaJobQueue();
+  let executedJobs: IQJob[] = [];
+
+  // this simulates a worker for this jobs, for the test we push these jobs to executedJobs array
+  queue.onJob = (job: IQJob, done: () => void) => {
+    setTimeout(() => {
+      executedJobs.push(job);
+      done();
+    }, 100);
+  };
+
+  const getLastExecutedJob = (): IQJob => executedJobs[executedJobs.length - 1];
 
   it('should push one job', () => {
     let job: IQJob = queue.addJob('loadConfig', {endPoint: 'http://example.com/awesomeCondig', _debugJonNo: 1});
@@ -56,7 +56,7 @@ describe('Dyna Job Queue - using addJob()', () => {
         expect(job.data._testId).toBe(`id-${index}`);
       });
       done();
-    }, (testForJobs*100)+400);
+    }, (testForJobs * 100) + 400);
   });
 
   it('pending jobs should 0', () => {
@@ -93,16 +93,17 @@ describe('Dyna Job Queue - using addJob()', () => {
 
 describe('Dyna Job Queue - using addJobCallback()', () => {
 
-  const testForJobs: number = 10;
+  let queue = new DynaJobQueue();
+  const testForCBJobs: number = 10;
   const testCollectedData: any[] = [];
 
   it('expects the pending jobs should 0', () => {
     expect(queue.count).toBe(0);
   });
 
-  it(`should push ${testForJobs} jobs`, () => {
+  it(`should push ${testForCBJobs} jobs`, () => {
     let ok: boolean = true;
-    for (let i: number = 0; i < testForJobs; i++) {
+    for (let i: number = 0; i < testForCBJobs; i++) {
       ok = ok && !!queue.addJobCallback((done: Function) => {
           setTimeout(() => {
             testCollectedData.push({index: i});
@@ -114,17 +115,17 @@ describe('Dyna Job Queue - using addJobCallback()', () => {
     expect(ok).toBe(true);
   });
 
-  it(`expects the pending jobs to be ${testForJobs}`, () => {
-    expect(queue.count).toBe(testForJobs);
+  it(`expects the pending jobs to be ${testForCBJobs}`, () => {
+    expect(queue.count).toBe(testForCBJobs);
   });
 
-  it(`should pick last ${testForJobs} job in correct order`, (done: Function) => {
+  it(`should pick last ${testForCBJobs} job in correct order`, (done: Function) => {
     setTimeout(() => {
       testCollectedData.forEach((data: any, index: number) => {
         expect(data.index).toBe(index);
       });
       done();
-    }, (testForJobs * 100) + 400);
+    }, (testForCBJobs * 100) + 400);
   });
 
   it('expects the pending jobs should 0', () => {

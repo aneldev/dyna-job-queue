@@ -54,7 +54,7 @@ let comparisons = (expectValue, not = false) => {
         global._mockJest.passed++;
       }
       else {
-        console.log(`        FAILED, expected [${expectValue}] but received [${toBeValue}]`);
+        console.log(`        FAILED, expected [${toBeValue}] but received [${expectValue}]`);
         global._mockJest.errors++;
       }
     }
