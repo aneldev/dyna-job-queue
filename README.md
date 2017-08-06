@@ -2,14 +2,14 @@
 
 A Job Queue. 
 
-Push your jobs there and the `.onJob` will be called where it is possible.
+Add your jobs there and the `.onJob` will be called whenever is possible.
 
-Only on job will be in progress each time.
+Only one job will be in progress each time.
 
 # Usage
 
 ```
-import {DynaJobQueue} from '../src';
+import {DynaJobQueue} from 'dyna-job-queue';
 
 let queue = new DynaJobQueue();
 
@@ -30,7 +30,7 @@ queue.onJob = (job, done) => {
 queue.addJob('loadConfig', {endPoint: 'http://example.com/awesomeCondig'});
 queue.addJob('loadProfile', {endPoint: 'http://example.com/awesomeProfile'});
 
-// your `onJob` will be called with these jobs.
+// your `onJob` will be called for these jobs
 
 ```
 
@@ -38,7 +38,7 @@ queue.addJob('loadProfile', {endPoint: 'http://example.com/awesomeProfile'});
 
 ## addJob(command: string, data: any): IQJob
 
-Adds a job in the list, this will be executed when all other will be executed (FIFO).
+Adds a job and will be executed when all other jobs will be executed (FIFO).
 
 The `command` is a string that will help you to understand what is this job.
 
@@ -48,9 +48,9 @@ The `data` can be anything, let's say, the parameters for this job.
 
 The `onJob` is a method that you should override is order you to process the jobs.
 
-If you don't override you will get an exception.
+If you don't override you will get an exception on `addJob()`.
 
-*Note:* you have to call the `done()` when you finish otherwize the execution will stuck. It's up to you to take care of it!  
+*Note:* you have to call the `done()` when you finish otherwise the execution will stuck. It's up to you to take care of it!  
 
 # Properties
 
