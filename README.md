@@ -50,7 +50,7 @@ The `command` is a string that will help you to understand what is this job.
 
 The `data` can be anything, let's say, the parameters for this job.
 
-The `priority` in optional. Default value is 1. Small numbers have bigger priority.
+The `priority` is optional. Default value is 1. Smaller numbers have priority.
 
 **example:**
 
