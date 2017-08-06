@@ -6,6 +6,12 @@ Add your jobs there and the `.onJob` will be called whenever is possible.
 
 Only one job will be in progress each time.
 
+# Installation
+
+In the root folder of you app run: 
+
+`npm install --save dyna-job-queue`
+
 # Usage
 
 ```
