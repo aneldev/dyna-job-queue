@@ -1,10 +1,10 @@
 {
-  "name": "dyna-ts-module-boilerplate",
+  "name": "dyna-job-queue",
   "version": "1.0.15",
   "description": "About",
   "repository": {
     "type": "git",
-    "url": "http://github.com/aneldev/dyna-ts-module-boilerplate"
+    "url": "http://github.com/aneldev/dyna-job-queue"
   },
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
