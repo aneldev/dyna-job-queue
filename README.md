@@ -52,6 +52,15 @@ The `data` can be anything, let's say, the parameters for this job.
 
 The `priority` in optional. Default value is 1. Small numbers have bigger priority.
 
+**example:**
+
+```
+queue.addJob('loadConfig', {endPoint: 'http://example.com/awesomeCondig'});
+
+queue.addJob('loadImage', {endPoint: 'http://example.com/awesomeCondig'}, 2); // <-- priotity 2
+
+```
+
 ## onJob(job: IQJob, done: () => void): void
 
 The `onJob` is a method that you should override is order you to process the jobs.
@@ -59,6 +68,51 @@ The `onJob` is a method that you should override is order you to process the job
 If you don't override you will get an exception on `addJob()`.
 
 *Note:* you have to call the `done()` when you finish otherwise the execution will stuck. It's up to you to take care of it!  
+
+**example:**
+
+```
+queue.onJob = (job, done) => {
+  switch (job.command) {
+    case 'loadImage':
+      fetch(job.data.endPoint)
+        .then(image => {
+           this.saveImage(image);
+           done(); // <-- is important to call it when you finish
+        })
+        .catch(error => {
+           console.error(`Problem fetching the image ${job.data.endPoint}`);
+           done(); // <-- is important to call it when you finish!
+        }
+    break;
+  }
+};
+
+```
+
+## addJobCallback(callback: (done: Function) => void, priority: number = 1): IQJob
+
+This is another way to add a job. You don't define `command` and `data` but directly the callback function you want to call. The callback will be called with only the `done: Function` as argument.
+
+**example:**
+
+```
+// implement an anonymous function
+queue.addJobCallback((done: Function) => {
+  // so something special here
+  done();
+});
+
+// as above, define also th priority
+queue.addJobCallback((done: Function) => {
+  // so something special here
+  done();
+}, 2);  // <-- priority 2!
+
+// use an already implemented function
+queue.addJobCallback(this.processMyJob, 2);  // <-- priority 2!
+```
+
 
 # Properties
 

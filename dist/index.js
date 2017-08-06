@@ -89,12 +89,19 @@ class DynaJobQueue {
         this._isExecuting = false;
         this._internalCounter = 0;
     }
-    addJob(command, data, priority = 1) {
-        let job = { command, data, priority, _internalPriority: this._createPriorityNumber(priority) };
+    addJob(command, data, priority = 1, _callback) {
+        if (!priority)
+            priority = 1;
+        if (!_callback)
+            _callback = this.onJob;
+        let job = { command, data, priority, _internalPriority: this._createPriorityNumber(priority), callback: _callback };
         this._jobs.push(job);
         this._jobs.sort((jobA, jobB) => jobA._internalPriority - jobB._internalPriority);
         setTimeout(() => this._execute(), 0);
         return job;
+    }
+    addJobCallback(callback, priority = 1) {
+        return this.addJob(null, null, priority, callback);
     }
     onJob(job, done) {
         // to override!
@@ -108,11 +115,21 @@ class DynaJobQueue {
             return;
         const jobToExecute = this._jobs.shift();
         if (jobToExecute) {
-            this._isExecuting = true;
-            this.onJob(jobToExecute, () => {
-                this._isExecuting = false;
-                this._execute();
-            });
+            // the regular onJob
+            if (jobToExecute.callback === this.onJob) {
+                this._isExecuting = true;
+                jobToExecute.callback(jobToExecute, () => {
+                    this._isExecuting = false;
+                    this._execute();
+                });
+            }
+            else {
+                this._isExecuting = true;
+                jobToExecute.callback(() => {
+                    this._isExecuting = false;
+                    this._execute();
+                });
+            }
         }
     }
     _createPriorityNumber(priority) {

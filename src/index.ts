@@ -2,6 +2,7 @@ export interface IQJob {
   command: string;
   data: any;
   priority: number;
+  callback: Function;
   _internalPriority: number,
 }
 
@@ -9,12 +10,18 @@ export class DynaJobQueue {
   private _jobs: IQJob[] = [];
   private _isExecuting: boolean = false;
 
-  public addJob(command: string, data: any, priority: number = 1): IQJob {
-    let job: IQJob = {command, data, priority, _internalPriority: this._createPriorityNumber(priority)};
+  public addJob(command: string, data: any, priority: number = 1, _callback?: Function | ((job: IQJob, done: Function) => void)): IQJob {
+    if (!priority) priority = 1;
+    if (!_callback) _callback = this.onJob;
+    let job: IQJob = {command, data, priority, _internalPriority: this._createPriorityNumber(priority), callback: _callback};
     this._jobs.push(job);
     this._jobs.sort((jobA: IQJob, jobB: IQJob) => jobA._internalPriority - jobB._internalPriority);
     setTimeout(() => this._execute(), 0);
     return job;
+  }
+
+  public addJobCallback(callback: (done: Function) => void, priority: number = 1): IQJob {
+    return this.addJob(null, null, priority, callback);
   }
 
   public onJob(job: IQJob, done: () => void): void {
@@ -31,11 +38,22 @@ export class DynaJobQueue {
     const jobToExecute: IQJob = this._jobs.shift();
 
     if (jobToExecute) {
-      this._isExecuting = true;
-      this.onJob(jobToExecute, () => {
-        this._isExecuting = false;
-        this._execute();
-      });
+      // the regular onJob
+      if (jobToExecute.callback === this.onJob) {
+        this._isExecuting = true;
+        jobToExecute.callback(jobToExecute, () => {
+          this._isExecuting = false;
+          this._execute();
+        });
+      }
+      // custom callback
+      else{
+        this._isExecuting = true;
+        jobToExecute.callback(() => {
+          this._isExecuting = false;
+          this._execute();
+        });
+      }
     }
   }
 

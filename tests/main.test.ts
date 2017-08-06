@@ -19,7 +19,7 @@ queue.onJob = (job: IQJob, done: () => void) => {
 
 const getLastExecutedJob = (): IQJob => executedJobs[executedJobs.length - 1];
 
-describe('Dyna Job Queue', () => {
+describe('Dyna Job Queue - using addJob()', () => {
 
   it('should push one job', () => {
     let job: IQJob = queue.addJob('loadConfig', {endPoint: 'http://example.com/awesomeCondig', _debugJonNo: 1});
@@ -87,6 +87,48 @@ describe('Dyna Job Queue', () => {
       });
       done();
     }, 1300);
+  });
+
+});
+
+describe('Dyna Job Queue - using addJobCallback()', () => {
+
+  const testForJobs: number = 10;
+  const testCollectedData: any[] = [];
+
+  it('expects the pending jobs should 0', () => {
+    expect(queue.count).toBe(0);
+  });
+
+  it(`should push ${testForJobs} jobs`, () => {
+    let ok: boolean = true;
+    for (let i: number = 0; i < testForJobs; i++) {
+      ok = ok && !!queue.addJobCallback((done: Function) => {
+          setTimeout(() => {
+            testCollectedData.push({index: i});
+            done();
+          }, 100);
+        }
+      );
+    }
+    expect(ok).toBe(true);
+  });
+
+  it(`expects the pending jobs to be ${testForJobs}`, () => {
+    expect(queue.count).toBe(testForJobs);
+  });
+
+  it(`should pick last ${testForJobs} job in correct order`, (done: Function) => {
+    setTimeout(() => {
+      testCollectedData.forEach((data: any, index: number) => {
+        expect(data.index).toBe(index);
+      });
+      done();
+    }, (testForJobs * 100) + 400);
+  });
+
+  it('expects the pending jobs should 0', () => {
+    expect(queue.count).toBe(0);
   });
 
 });
