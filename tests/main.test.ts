@@ -133,3 +133,31 @@ describe('Dyna Job Queue - using addJobCallback()', () => {
   });
 
 });
+
+describe('Dyna Job Queue - using addJobPromise()', () => {
+
+  let queue = new DynaJobQueue();
+  const testForCBJobs: number = 10;
+  const testCollectedData: any[] = [];
+
+  it(`should push ${testForCBJobs} jobs`, (done: Function) => {
+    for (let i: number = 0; i < testForCBJobs; i++) {
+      queue.addJobPromise((resolve: Function, reject: Function) => {
+        setTimeout(() => {
+          testCollectedData.push({index: i});
+          resolve();
+        }, 100);
+      }, 2)
+        .then(() => {
+          let lastIndexValue: number = testCollectedData[testCollectedData.length - 1].index;
+          expect(lastIndexValue).toBe(i);
+          if (lastIndexValue == 9) done();
+        });
+    }
+  });
+
+  it('expects the pending jobs should 0', () => {
+    expect(queue.count).toBe(0);
+  });
+
+});

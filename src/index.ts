@@ -23,6 +23,22 @@ export class DynaJobQueue {
     return this.addJob(null, null, priority, callback);
   }
 
+  public addJobPromise(callback: (resolve: Function, reject: Function) => void, priority: number = 1): Promise<any> {
+    return new Promise((resolve: Function, reject: Function) => {
+      this.addJobCallback(
+        (done: Function) => callback(
+          () => {
+            resolve();
+            done();
+          },
+          () => {
+            reject();
+            done();
+          }),
+        priority);
+    });
+  }
+
   public onJob(job: IQJob, done: () => void): void {
     // to override!
     throw Error('DynaJobQueue: onJob! error, you should override the onJob function where is called when a job is available');

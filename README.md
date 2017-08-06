@@ -113,6 +113,33 @@ queue.addJobCallback((done: Function) => {
 queue.addJobCallback(this.processMyJob, 2);  // <-- priority 2!
 ```
 
+## addJobPromise(callback: (resolve: Function, reject: Function) => void, priority: number = 1): Promise<any>
+
+This method adds a job with callback and returns a Promise. The callback provides two functions, the `resolve` and the `reject` when will fulfill the Promise. In `resolve` pass the output of the Promise.
+
+The difference with the callback of other methods is that you have to call the `resolve` or `reject` instead of `done`; that's all!  
+
+So this method is a Promise generator. The benefix is that you can get the Promise that will be executed on proper time.
+ 
+**example:**
+
+```
+queue.addJobPromise((resolve: Function, reject: Function) => {
+  try{
+    // do some work here
+    resolve(data);    
+  } catch (err) {
+    reject(err);
+  }
+}, 2) // <-- this 2 is the priority
+  .then((data: any) => {
+    // our resloved data are here
+  })
+  .catch((err: any)) => {
+    // our exception is dropped here
+  });
+```
+
 
 # Properties
 
