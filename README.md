@@ -42,13 +42,15 @@ queue.addJob('loadProfile', {endPoint: 'http://example.com/awesomeProfile'});
 
 # Methods
 
-## addJob(command: string, data: any): IQJob
+## addJob(command: string, data: any, priority: number = 1): IQJob
 
-Adds a job and will be executed when all other jobs will be executed (FIFO).
+Adds a job and will be executed when all other jobs will be executed (FIFO) according also the priority (where is optional).
 
 The `command` is a string that will help you to understand what is this job.
 
 The `data` can be anything, let's say, the parameters for this job.
+
+The `priority` in optional. Default value is 1. Small numbers have bigger priority.
 
 ## onJob(job: IQJob, done: () => void): void
 
@@ -76,5 +78,6 @@ There is only one interface.
 {
   command: string;
   data: any;
+  priority: number;
 }
 ```

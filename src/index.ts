@@ -1,15 +1,18 @@
 export interface IQJob {
   command: string;
   data: any;
+  priority: number;
+  _internalPriority: number,
 }
 
 export class DynaJobQueue {
   private _jobs: IQJob[] = [];
   private _isExecuting: boolean = false;
 
-  public addJob(command: string, data: any): IQJob {
-    let job: IQJob = {command, data};
+  public addJob(command: string, data: any, priority: number = 1): IQJob {
+    let job: IQJob = {command, data, priority, _internalPriority: this._createPriorityNumber(priority)};
     this._jobs.push(job);
+    this._jobs.sort((jobA: IQJob, jobB: IQJob) => jobA._internalPriority - jobB._internalPriority);
     setTimeout(() => this._execute(), 0);
     return job;
   }
@@ -35,4 +38,11 @@ export class DynaJobQueue {
       });
     }
   }
+
+  private _internalCounter: number = 0;
+
+  private _createPriorityNumber(priority: number): number {
+    return Number(("000000000000000" + priority).substr(-15) + '0' + (++this._internalCounter));
+  }
+
 }

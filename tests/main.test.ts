@@ -56,12 +56,37 @@ describe('Dyna Job Queue', () => {
         expect(job.data._testId).toBe(`id-${index}`);
       });
       done();
-    }, (testForJobs*100)+100);
+    }, (testForJobs*100)+400);
   });
 
   it('pending jobs should 0', () => {
     expect(queue.count).toBe(0);
   });
 
+  it('should ass job with priority', () => {
+    let ok: boolean = true;
+    ok = ok && !!queue.addJob('addTodo', {desc: 'Implement this', _debugId: 5}, 8);
+    ok = ok && !!queue.addJob('addTodo', {desc: 'Implement this', _debugId: 6}, 8);
+    ok = ok && !!queue.addJob('addTodo', {desc: 'Implement this', _debugId: 3}, 2);
+    ok = ok && !!queue.addJob('addTodo', {desc: 'Implement this', _debugId: 2}, 1);
+    ok = ok && !!queue.addJob('addTodo', {desc: 'Implement this', _debugId: 0}, 0);
+    ok = ok && !!queue.addJob('addTodo', {desc: 'Implement this', _debugId: 9}, 11);
+    ok = ok && !!queue.addJob('addTodo', {desc: 'Implement this', _debugId: 1}, 0);
+    ok = ok && !!queue.addJob('addTodo', {desc: 'Implement this', _debugId: 7}, 10);
+    ok = ok && !!queue.addJob('addTodo', {desc: 'Implement this', _debugId: 4}, 3);
+    ok = ok && !!queue.addJob('addTodo', {desc: 'Implement this', _debugId: 8}, 10);
+    expect(!!ok).toBe(true);
+  });
+
+  it('should pick the job in correct order', (done: Function) => {
+    setTimeout(() => {
+      let lastJobs: IQJob[] = executedJobs.slice(-10);
+      lastJobs.forEach((job: IQJob, index: number) => {
+        expect(job.command).toBe('addTodo');
+        expect(job.data._debugId).toBe(index);
+      });
+      done();
+    }, 1300);
+  });
 
 });

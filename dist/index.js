@@ -87,10 +87,12 @@ class DynaJobQueue {
     constructor() {
         this._jobs = [];
         this._isExecuting = false;
+        this._internalCounter = 0;
     }
-    addJob(command, data) {
-        let job = { command, data };
+    addJob(command, data, priority = 1) {
+        let job = { command, data, priority, _internalPriority: this._createPriorityNumber(priority) };
         this._jobs.push(job);
+        this._jobs.sort((jobA, jobB) => jobA._internalPriority - jobB._internalPriority);
         setTimeout(() => this._execute(), 0);
         return job;
     }
@@ -112,6 +114,9 @@ class DynaJobQueue {
                 this._execute();
             });
         }
+    }
+    _createPriorityNumber(priority) {
+        return Number(("000000000000000" + priority).substr(-15) + '0' + (++this._internalCounter));
     }
 }
 exports.DynaJobQueue = DynaJobQueue;
