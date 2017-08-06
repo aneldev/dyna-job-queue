@@ -96,7 +96,7 @@ class DynaJobQueue {
     }
     onJob(job, done) {
         // to override!
-        console.error('DynaJobQueue: onJob! error, you should override the onJob function where is called when a job is available');
+        throw Error('DynaJobQueue: onJob! error, you should override the onJob function where is called when a job is available');
     }
     get count() {
         return this._jobs.length;
