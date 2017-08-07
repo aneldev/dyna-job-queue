@@ -119,7 +119,7 @@ This method adds a job with callback and returns a Promise. The callback provide
 
 The difference with the callback of other methods is that you have to call the `resolve` or `reject` instead of `done`; that's all!  
 
-So this method is a Promise generator. The benefix is that you can get the Promise that will be executed on proper time.
+So this method is a Promise generator. The benefit is that you can get the Promise that will be fulfilled on the proper time.
  
 **example:**
 
