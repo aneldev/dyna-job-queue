@@ -144,13 +144,15 @@ describe('Dyna Job Queue - using addJobPromise()', () => {
     for (let i: number = 0; i < testForCBJobs; i++) {
       queue.addJobPromise((resolve: Function, reject: Function) => {
         setTimeout(() => {
-          testCollectedData.push({index: i});
-          resolve();
+          let data: any = {index: i};
+          testCollectedData.push(data);
+          resolve(data);
         }, 100);
       }, 2)
-        .then(() => {
+        .then((data: any) => {
           let lastIndexValue: number = testCollectedData[testCollectedData.length - 1].index;
           expect(lastIndexValue).toBe(i);
+          expect(data.index).toBe(i);
           if (lastIndexValue == 9) done();
         });
     }

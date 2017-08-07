@@ -103,11 +103,11 @@ class DynaJobQueue {
     }
     addJobPromise(callback, priority = 1) {
         return new Promise((resolve, reject) => {
-            this.addJobCallback((done) => callback(() => {
-                resolve();
+            this.addJobCallback((done) => callback((data) => {
+                resolve(data);
                 done();
-            }, () => {
-                reject();
+            }, (error) => {
+                reject(error);
                 done();
             }), priority);
         });
