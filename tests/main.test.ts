@@ -23,6 +23,7 @@ describe('Dyna Job Queue - using addJob()', () => {
 
   it('should push one job', () => {
     let job: IQJob = queue.addJob('loadConfig', {endPoint: 'http://example.com/awesomeCondig', _debugJonNo: 1});
+    expect(queue.isWorking).toBe(true);
     expect(job.command).toBe('loadConfig');
     expect(job.data._debugJonNo).toBe(1);
     expect(queue.count).toBe(1);
@@ -31,6 +32,7 @@ describe('Dyna Job Queue - using addJob()', () => {
   it('should pick the job', (done: Function) => {
     setTimeout(() => {
       let job: IQJob = getLastExecutedJob();
+      expect(queue.isWorking).toBe(false);
       expect(job.command).toBe('loadConfig');
       expect(job.data._debugJonNo).toBe(1);
       expect(queue.count).toBe(0);
@@ -146,6 +148,7 @@ describe('Dyna Job Queue - using addJobPromise()', () => {
         setTimeout(() => {
           let data: any = {index: i};
           testCollectedData.push(data);
+          expect(queue.isWorking).toBe(true);
           resolve(data);
         }, 100);
       }, 2)
@@ -153,6 +156,7 @@ describe('Dyna Job Queue - using addJobPromise()', () => {
           let lastIndexValue: number = testCollectedData[testCollectedData.length - 1].index;
           expect(lastIndexValue).toBe(i);
           expect(data.index).toBe(i);
+          if (lastIndexValue == 9) expect(queue.isWorking).toBe(false);
           if (lastIndexValue == 9) done();
         });
     }

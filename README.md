@@ -103,7 +103,7 @@ queue.addJobCallback((done: Function) => {
   done();
 });
 
-// as above, define also th priority
+// as above, define also the priority
 queue.addJobCallback((done: Function) => {
   // so something special here
   done();
@@ -146,6 +146,12 @@ queue.addJobPromise((resolve: Function, reject: Function) => {
 ## count: number
 
 Informative, gives the current amount of pending jobs.
+
+## isWorking: boolean
+
+Indicates when there are pending jobs or job are in process.
+
+When `isWorking` is false then nothing is pending.
 
 # Interfaces
 

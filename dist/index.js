@@ -119,6 +119,9 @@ class DynaJobQueue {
     get count() {
         return this._jobs.length;
     }
+    get isWorking() {
+        return !!this._jobs.length || this._isExecuting;
+    }
     _execute() {
         if (this._isExecuting)
             return;

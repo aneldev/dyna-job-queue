@@ -48,6 +48,10 @@ export class DynaJobQueue {
     return this._jobs.length;
   }
 
+  public get isWorking(): boolean {
+    return !!this._jobs.length || this._isExecuting;
+  }
+
   private _execute(): void {
     if (this._isExecuting) return;
     const jobToExecute: IQJob = this._jobs.shift();
