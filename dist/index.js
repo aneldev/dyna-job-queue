@@ -83,73 +83,88 @@ return /******/ (function(modules) { // webpackBootstrap
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-class DynaJobQueue {
-    constructor() {
+var DynaJobQueue = /** @class */ (function () {
+    function DynaJobQueue() {
         this._jobs = [];
         this._isExecuting = false;
         this._internalCounter = 0;
     }
-    addJob(command, data, priority = 1, _callback) {
+    DynaJobQueue.prototype.addJob = function (command, data, priority, _callback) {
+        var _this = this;
+        if (priority === void 0) { priority = 1; }
         if (!_callback)
             _callback = this.onJob;
-        let job = { command, data, priority, _internalPriority: this._createPriorityNumber(priority), _callback: _callback };
+        var job = { command: command, data: data, priority: priority, _internalPriority: this._createPriorityNumber(priority), _callback: _callback };
         this._jobs.push(job);
-        this._jobs.sort((jobA, jobB) => jobA._internalPriority - jobB._internalPriority);
-        setTimeout(() => this._execute(), 0);
+        this._jobs.sort(function (jobA, jobB) { return jobA._internalPriority - jobB._internalPriority; });
+        setTimeout(function () { return _this._execute(); }, 0);
         return job;
-    }
-    addJobCallback(callback, priority = 1) {
+    };
+    DynaJobQueue.prototype.addJobCallback = function (callback, priority) {
+        if (priority === void 0) { priority = 1; }
         return this.addJob(null, null, priority, callback);
-    }
-    addJobPromise(callback, priority = 1) {
-        return new Promise((resolve, reject) => {
-            this.addJobCallback((done) => callback((data) => {
+    };
+    DynaJobQueue.prototype.addJobPromise = function (callback, priority) {
+        var _this = this;
+        if (priority === void 0) { priority = 1; }
+        return new Promise(function (resolve, reject) {
+            _this.addJobCallback(function (done) { return callback(function (data) {
                 resolve(data);
                 done();
-            }, (error) => {
+            }, function (error) {
                 reject(error);
                 done();
-            }), priority);
+            }); }, priority);
         });
-    }
-    onJob(job, done) {
+    };
+    DynaJobQueue.prototype.onJob = function (job, done) {
         // to override!
         throw Error('DynaJobQueue: onJob! error, you should override the onJob function where is called when a job is available');
-    }
-    get count() {
-        return this._jobs.length;
-    }
-    get isWorking() {
-        return !!this._jobs.length || this._isExecuting;
-    }
-    _execute() {
+    };
+    Object.defineProperty(DynaJobQueue.prototype, "count", {
+        get: function () {
+            return this._jobs.length;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DynaJobQueue.prototype, "isWorking", {
+        get: function () {
+            return !!this._jobs.length || this._isExecuting;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    DynaJobQueue.prototype._execute = function () {
+        var _this = this;
         if (this._isExecuting)
             return;
-        const jobToExecute = this._jobs.shift();
+        var jobToExecute = this._jobs.shift();
         if (this._jobs.length === 0)
             this._internalCounter = 0;
         if (jobToExecute) {
             // the regular onJob
             if (jobToExecute._callback === this.onJob) {
                 this._isExecuting = true;
-                jobToExecute._callback(jobToExecute, () => {
-                    this._isExecuting = false;
-                    this._execute();
+                jobToExecute._callback(jobToExecute, function () {
+                    _this._isExecuting = false;
+                    _this._execute();
                 });
             }
             else {
                 this._isExecuting = true;
-                jobToExecute._callback(() => {
-                    this._isExecuting = false;
-                    this._execute();
+                jobToExecute._callback(function () {
+                    _this._isExecuting = false;
+                    _this._execute();
                 });
             }
         }
-    }
-    _createPriorityNumber(priority) {
+    };
+    DynaJobQueue.prototype._createPriorityNumber = function (priority) {
         return Number(("000000000000000" + priority).substr(-15) + '0' + ("0000000000" + (++this._internalCounter)).substr(-10));
-    }
-}
+    };
+    return DynaJobQueue;
+}());
 exports.DynaJobQueue = DynaJobQueue;
 
 
