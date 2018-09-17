@@ -151,6 +151,7 @@ var DynaJobQueue = /** @class */ (function () {
                     _this._execute();
                 });
             }
+            // custom callback
             else {
                 this._isExecuting = true;
                 jobToExecute._callback(function () {

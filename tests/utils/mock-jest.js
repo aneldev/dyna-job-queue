@@ -3,7 +3,7 @@
 // As documented here: https://facebook.github.io/jest/docs/troubleshooting.html is not working as far of May/17
 if (typeof global === 'undefined' && typeof window !== 'undefined') global = window;
 
-let HIDE_SUCCESS_VALIDATION = false;
+let HIDE_SUCCESS_VALIDATION = true;
 
 // init section
 
@@ -59,7 +59,7 @@ let comparisons = (expectValue, not = false) => {
 				global._mockJest.passed++;
 			}
 			else {
-				console.log(`        FAILED, expected [${toBeValue}] but received [${expectValue}]`);
+				console.log(`        FAILED, ${not ? "not " : ""}expected [${toBeValue}] but received [${expectValue}]`);
 				global._mockJest.errors++;
 			}
 		}
@@ -122,6 +122,12 @@ function executeIts(its, cbCompleted) {
 	}
 }
 
+function exit(code) {
+	if (typeof process !== 'undefined' && typeof process.exit !== 'undefined'){
+		process.exit(code);
+	}
+}
+
 function finished() {
 	let report = 'All TEST finished, results:' + ' ' + 'errors:' + ' ' + global._mockJest.errors + ' ' + 'passed:' + ' ' + global._mockJest.passed;
 	console.log('');
@@ -131,7 +137,7 @@ function finished() {
 		console.log('   xxx   ');
 		console.log('  xx xx  ');
 		console.log(' xx   xx ' + report);
-		process.exit(100);
+		exit(100);
 	}
 	else {
 		console.log('      vv');
@@ -139,6 +145,6 @@ function finished() {
 		console.log('vv  vv');
 		console.log(' vvvv');
 		console.log('  vv      ' + report);
-		process.exit(0);
+		exit(0);
 	}
 }

@@ -5,7 +5,6 @@ import {DynaJobQueue, IQJob} from '../../src/index';
 
 // help: https://facebook.github.io/jest/docs/expect.html
 
-
 describe('Dyna Job Queue - using addJob()', () => {
 
   let queue = new DynaJobQueue();

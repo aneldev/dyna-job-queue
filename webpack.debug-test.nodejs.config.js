@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
+const nodeExternals = require('webpack-node-externals');
 
 const loaders = require('./webpack.loaders');
 const plugins = require('./webpack.plugins');
@@ -17,7 +18,7 @@ const config = {
 		// the entry application code
     path.resolve(__dirname, 'tests/index.ts')
   ],
-  externals: [],
+  externals: [nodeExternals()], // in order to ignore all modules in node_modules folder
   output: {
     path: path.resolve(__dirname, 'debug-ground/debug-test-on-nodejs'),
     filename: 'index.js'
