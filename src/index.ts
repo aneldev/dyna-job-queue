@@ -23,7 +23,7 @@ export class DynaJobQueue {
     return this.addJob(null, null, priority, callback);
   }
 
-  public addJobPromise<TResolve>(callback: (resolve: (data: TResolve) => void, reject: (error: any) => void) => void, priority: number = 1): Promise<TResolve> {
+  public addJobPromise<TData>(callback: (resolve: (data?: TData) => void, reject: (error?: any) => void) => void, priority: number = 1): Promise<TData> {
     return new Promise((resolve: (data: any) => void, reject: (error: any) => void) => {
       this.addJobCallback(
         (done: Function) => callback(

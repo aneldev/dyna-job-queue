@@ -10,7 +10,7 @@ export declare class DynaJobQueue {
     private _isExecuting;
     addJob(command: string, data: any, priority?: number, _callback?: Function | ((job: IQJob, done: Function) => void)): IQJob;
     addJobCallback(callback: (done: Function) => void, priority?: number): IQJob;
-    addJobPromise<TResolve>(callback: (resolve: (data: TResolve) => void, reject: (error: any) => void) => void, priority?: number): Promise<TResolve>;
+    addJobPromise<TData>(callback: (resolve: (data?: TData) => void, reject: (error?: any) => void) => void, priority?: number): Promise<TData>;
     onJob(job: IQJob, done: () => void): void;
     readonly count: number;
     readonly isWorking: boolean;
