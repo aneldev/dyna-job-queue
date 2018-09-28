@@ -1,26 +1,33 @@
-export interface IQJob {
+export interface IDynaJobQueueConfig {
+  parallels?: number;
+}
+
+export interface IDynaJobQueueStats {
+  jobs: number;
+  running: number;
+}
+
+interface IQJob {
   command: string;
   data: any;
   priority: number;
-  _callback: Function;
-  _internalPriority: number,
+  callback: Function;
+  internalPriority: number,
 }
 
 export class DynaJobQueue {
   private _jobs: IQJob[] = [];
-  private _isExecuting: boolean = false;
+  private _parallels: number = 0;
 
-  public addJob(command: string, data: any, priority: number = 1, _callback?: Function | ((job: IQJob, done: Function) => void)): IQJob {
-    if (!_callback) _callback = this.onJob;
-    let job: IQJob = {command, data, priority, _internalPriority: this._createPriorityNumber(priority), _callback: _callback};
-    this._jobs.push(job);
-    this._jobs.sort((jobA: IQJob, jobB: IQJob) => jobA._internalPriority - jobB._internalPriority);
-    setTimeout(() => this._execute(), 0);
-    return job;
+  constructor(private _config: IDynaJobQueueConfig = {}) {
+    this._config = {
+      parallels: 1,
+      ...this._config
+    }
   }
 
-  public addJobCallback(callback: (done: Function) => void, priority: number = 1): IQJob {
-    return this.addJob(null, null, priority, callback);
+  public addJobCallback(callback: (done: Function) => void, priority: number = 1): void {
+    this.addJob(null, null, priority, callback);
   }
 
   public addJobPromise<TData>(callback: (resolve: (data?: TData) => void, reject: (error?: any) => void) => void, priority: number = 1): Promise<TData> {
@@ -39,41 +46,35 @@ export class DynaJobQueue {
     });
   }
 
-  public onJob(job: IQJob, done: () => void): void {
-    // to override!
-    throw Error('DynaJobQueue: onJob! error, you should override the onJob function where is called when a job is available');
-  }
-
-  public get count(): number {
-    return this._jobs.length;
+  public get stats(): IDynaJobQueueStats {
+    return {
+      jobs: this._jobs.length,
+      running: this._parallels,
+    };
   }
 
   public get isWorking(): boolean {
-    return !!this._jobs.length || this._isExecuting;
+    return !!this._jobs.length || !!this._parallels;
+  }
+
+  private addJob(command: string, data: any, priority: number = 1, callback: (done: Function) => void): void {
+    let job: IQJob = {command, data, priority, internalPriority: this._createPriorityNumber(priority), callback};
+    this._jobs.push(job);
+    this._jobs.sort((jobA: IQJob, jobB: IQJob) => jobA.internalPriority - jobB.internalPriority);
+    setTimeout(() => this._execute(), 0);
   }
 
   private _execute(): void {
-    if (this._isExecuting) return;
+    if (this._parallels === this._config.parallels) return;
     const jobToExecute: IQJob = this._jobs.shift();
     if (this._jobs.length === 0) this._internalCounter = 0;
 
     if (jobToExecute) {
-      // the regular onJob
-      if (jobToExecute._callback === this.onJob) {
-        this._isExecuting = true;
-        jobToExecute._callback(jobToExecute, () => {
-          this._isExecuting = false;
-          this._execute();
-        });
-      }
-      // custom callback
-      else{
-        this._isExecuting = true;
-        jobToExecute._callback(() => {
-          this._isExecuting = false;
-          this._execute();
-        });
-      }
+      this._parallels++;
+      jobToExecute.callback(() => {
+        this._parallels--;
+        this._execute();
+      });
     }
   }
 

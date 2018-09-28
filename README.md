@@ -12,37 +12,17 @@ In the root folder of you app run:
 
 `npm install --save dyna-job-queue`
 
-# Usage
-
-```
-import {DynaJobQueue} from 'dyna-job-queue';
-
-let queue = new DynaJobQueue();
-
-queue.onJob = (job, done) => {
-    // here you have the added job
-    // job: {command, data} 
-	
-    // do something for this job
-    // ...
-	
-    // and always call done() when you finished
-    done();  
-};
-
-
-// somewhere in your app
-
-queue.addJob('loadConfig', {endPoint: 'http://example.com/awesomeCondig'});
-queue.addJob('loadProfile', {endPoint: 'http://example.com/awesomeProfile'});
-
-// your `onJob` will be called for these jobs
-
-```
-
 # Methods
 
-## addJob(command: string, data: any, priority: number = 1): IQJob
+## constructor(config: IDynaJobQueueConfig)
+
+```
+interface IDynaJobQueueConfig {
+  parallels?: number;       // default 1, the number of the parallel jobs
+}
+```
+
+## addJob(command: string, data: any, priority: number = 1): void
 
 Adds a job and will be executed when all other jobs will be executed (FIFO) according also the priority (where is optional).
 
@@ -61,36 +41,7 @@ queue.addJob('loadImage', {endPoint: 'http://example.com/awesomeCondig'}, 2); //
 
 ```
 
-## onJob(job: IQJob, done: () => void): void
-
-The `onJob` is a method that you should override is order you to process the jobs.
-
-If you don't override you will get an exception on `addJob()`.
-
-*Note:* you have to call the `done()` when you finish otherwise the execution will stuck. It's up to you to take care of it!  
-
-**example:**
-
-```
-queue.onJob = (job, done) => {
-  switch (job.command) {
-    case 'loadImage':
-      fetch(job.data.endPoint)
-        .then(image => {
-           this.saveImage(image);
-           done(); // <-- is important to call it when you finish
-        })
-        .catch(error => {
-           console.error(`Problem fetching the image ${job.data.endPoint}`);
-           done(); // <-- is important to call it when you finish!
-        }
-    break;
-  }
-};
-
-```
-
-## addJobCallback(callback: (done: Function) => void, priority: number = 1): IQJob
+## addJobCallback(callback: (done: Function) => void, priority: number = 1): void
 
 This is another way to add a job. You don't define `command` and `data` but directly the callback function you want to call. The callback will be called with only the `done: Function` as argument.
 
@@ -143,28 +94,12 @@ queue.addJobPromise((resolve: Function, reject: Function) => {
 
 # Properties
 
-## count: number
+## stats: { jobs: number, running: number}}
 
-Informative, gives the current amount of pending jobs.
+`jobs` is the number of the jobs that pending
 
-## isWorking: boolean
+`running` the number of parallel running jobs
 
-Indicates when there are pending jobs or job are in process.
+Note: it is possible to have `jobs` but not `running` in the rare case of switching the jobs. 
 
-When `isWorking` is false then nothing is pending.
 
-# Interfaces
-
-If you use TypeScript, `dyna-job-queue` is written also in TypeScript.
-
-There is only one interface.
-
-## interface IQJob 
-
-```
-{
-  command: string;
-  data: any;
-  priority: number;
-}
-```
