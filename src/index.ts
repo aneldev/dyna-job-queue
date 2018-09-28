@@ -2,17 +2,17 @@ export interface IDynaJobQueueConfig {
   parallels?: number;
 }
 
-export interface IQJob {
+export interface IDynaJobQueueStats {
+  jobs: number;
+  running: number;
+}
+
+interface IQJob {
   command: string;
   data: any;
   priority: number;
   callback: Function;
-  _internalPriority: number,
-}
-
-export interface IDynaJobQueueStats {
-  jobs: number;
-  running: number;
+  internalPriority: number,
 }
 
 export class DynaJobQueue {
@@ -26,8 +26,8 @@ export class DynaJobQueue {
     }
   }
 
-  public addJobCallback(callback: (done: Function) => void, priority: number = 1): IQJob {
-    return this.addJob(null, null, priority, callback);
+  public addJobCallback(callback: (done: Function) => void, priority: number = 1): void {
+    this.addJob(null, null, priority, callback);
   }
 
   public addJobPromise<TData>(callback: (resolve: (data?: TData) => void, reject: (error?: any) => void) => void, priority: number = 1): Promise<TData> {
@@ -57,12 +57,11 @@ export class DynaJobQueue {
     return !!this._jobs.length || !!this._parallels;
   }
 
-  private addJob(command: string, data: any, priority: number = 1, callback: (done: Function) => void): IQJob {
-    let job: IQJob = {command, data, priority, _internalPriority: this._createPriorityNumber(priority), callback};
+  private addJob(command: string, data: any, priority: number = 1, callback: (done: Function) => void): void {
+    let job: IQJob = {command, data, priority, internalPriority: this._createPriorityNumber(priority), callback};
     this._jobs.push(job);
-    this._jobs.sort((jobA: IQJob, jobB: IQJob) => jobA._internalPriority - jobB._internalPriority);
+    this._jobs.sort((jobA: IQJob, jobB: IQJob) => jobA.internalPriority - jobB.internalPriority);
     setTimeout(() => this._execute(), 0);
-    return job;
   }
 
   private _execute(): void {
