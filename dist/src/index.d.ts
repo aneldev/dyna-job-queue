@@ -15,7 +15,6 @@ export interface IDynaJobQueueStats {
 export declare class DynaJobQueue {
     private _config;
     private _jobs;
-    private _isExecuting;
     private _parallels;
     constructor(_config?: IDynaJobQueueConfig);
     addJobCallback(callback: (done: Function) => void, priority?: number): IQJob;

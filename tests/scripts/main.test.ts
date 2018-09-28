@@ -49,7 +49,6 @@ describe('Dyna Job Queue - using addJobCallback()', () => {
 });
 
 describe('Dyna Job Queue - using addJobPromise()', () => {
-
   let queue = new DynaJobQueue();
   const testForCBJobs: number = 10;
   const testCollectedData: any[] = [];
@@ -78,4 +77,51 @@ describe('Dyna Job Queue - using addJobPromise()', () => {
     expect(queue.stats.jobs).toBe(0);
   });
 
+});
+
+describe('Dyna Job Queue - using parallels', () => {
+  let queue = new DynaJobQueue({parallels: 3});
+  let times: { [index: string]: number };
+
+  it('should push 5 jobs', (done: Function) => {
+    times = {};
+    const now: number = Number(new Date);
+    const getNow = (): number => Number(new Date) - now;
+    Array(5).fill(null).forEach((v: any, index: number) => {
+      queue.addJobPromise((resolve: Function) => {
+        times[index] = getNow();
+        setTimeout(resolve, 1000);
+      });
+    });
+    setTimeout(done, 2100);
+  });
+
+  it('should have the correct times', () => {
+    expect(times[0] < 500).toBe(true);
+    expect(times[1] < 500).toBe(true);
+    expect(times[2] < 500).toBe(true);
+    expect(times[3] > 1000).toBe(true);
+    expect(times[4] > 1000).toBe(true);
+  });
+
+  it('should push 5 jobs (again)', (done: Function) => {
+    times = {};
+    const now: number = Number(new Date);
+    const getNow = (): number => Number(new Date) - now;
+    Array(5).fill(null).forEach((v: any, index: number) => {
+      queue.addJobPromise((resolve: Function) => {
+        times[index] = getNow();
+        setTimeout(resolve, 1000);
+      });
+    });
+    setTimeout(done, 1100);
+  });
+
+  it('should have the correct times', () => {
+    expect(times[0] < 500).toBe(true);
+    expect(times[1] < 500).toBe(true);
+    expect(times[2] < 500).toBe(true);
+    expect(times[3] > 1000).toBe(true);
+    expect(times[4] > 1000).toBe(true);
+  });
 });

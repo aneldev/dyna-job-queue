@@ -17,7 +17,6 @@ export interface IDynaJobQueueStats {
 
 export class DynaJobQueue {
   private _jobs: IQJob[] = [];
-  private _isExecuting: boolean = false;
   private _parallels: number = 0;
 
   constructor(private _config: IDynaJobQueueConfig = {}) {
@@ -55,7 +54,7 @@ export class DynaJobQueue {
   }
 
   public get isWorking(): boolean {
-    return !!this._jobs.length || this._isExecuting;
+    return !!this._jobs.length || !!this._parallels;
   }
 
   private addJob(command: string, data: any, priority: number = 1, callback: (done: Function) => void): IQJob {
@@ -67,16 +66,13 @@ export class DynaJobQueue {
   }
 
   private _execute(): void {
-    if (this._isExecuting) return;
-    if (this._parallels >= this._config.parallels) return;
+    if (this._parallels === this._config.parallels) return;
     const jobToExecute: IQJob = this._jobs.shift();
     if (this._jobs.length === 0) this._internalCounter = 0;
 
     if (jobToExecute) {
-      this._isExecuting = true;
       this._parallels++;
       jobToExecute.callback(() => {
-        this._isExecuting = false;
         this._parallels--;
         this._execute();
       });
