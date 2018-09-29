@@ -16,17 +16,14 @@ describe('Dyna Job Queue - using addJobCallback()', () => {
   });
 
   it(`should push ${testForCBJobs} jobs`, () => {
-    let ok: boolean = true;
-    for (let i: number = 0; i < testForCBJobs; i++) {
-      ok = ok && !!queue.addJobCallback((done: Function) => {
-          setTimeout(() => {
-            testCollectedData.push({index: i});
-            done();
-          }, 100);
-        }
-      );
-    }
-    expect(ok).toBe(true);
+    Array(testForCBJobs).fill(null).forEach((v: any, index: number) => {
+      queue.addJobCallback((done: Function) => {
+        setTimeout(() => {
+          testCollectedData.push({index});
+          done();
+        }, 100);
+      });
+    });
   });
 
   it(`expects the pending jobs to be ${testForCBJobs}`, () => {
@@ -39,7 +36,7 @@ describe('Dyna Job Queue - using addJobCallback()', () => {
         expect(data.index).toBe(index);
       });
       done();
-    }, (testForCBJobs * 100) + 400);
+    }, (testForCBJobs * 100) + 500);
   });
 
   it('expects the pending jobs should 0', () => {
@@ -62,6 +59,39 @@ describe('Dyna Job Queue - using addJobPromise()', () => {
           expect(queue.isWorking).toBe(true);
           resolve(data);
         }, 100);
+      }, 2)
+        .then((data: any) => {
+          let lastIndexValue: number = testCollectedData[testCollectedData.length - 1].index;
+          expect(lastIndexValue).toBe(i);
+          expect(data.index).toBe(i);
+          if (lastIndexValue == 9) expect(queue.isWorking).toBe(false);
+          if (lastIndexValue == 9) done();
+        });
+    }
+  });
+
+  it('expects the pending jobs should 0', () => {
+    expect(queue.stats.jobs).toBe(0);
+  });
+
+});
+
+describe('Dyna Job Queue - using addJobPromised()', () => {
+  let queue = new DynaJobQueue();
+  const testForCBJobs: number = 10;
+  const testCollectedData: any[] = [];
+
+  it(`should push ${testForCBJobs} jobs`, (done: Function) => {
+    for (let i: number = 0; i < testForCBJobs; i++) {
+      queue.addJobPromised(() => {
+        return new Promise((resolve: (date: any) => void) => {
+          setTimeout(() => {
+            let data: any = {index: i};
+            testCollectedData.push(data);
+            expect(queue.isWorking).toBe(true);
+            resolve(data);
+          }, 100);
+        });
       }, 2)
         .then((data: any) => {
           let lastIndexValue: number = testCollectedData[testCollectedData.length - 1].index;

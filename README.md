@@ -64,9 +64,9 @@ queue.addJobCallback((done: Function) => {
 queue.addJobCallback(this.processMyJob, 2);  // <-- priority 2!
 ```
 
-## addJobPromise(callback: (resolve: Function, reject: Function) => void, priority: number = 1): Promise<any>
+## addJobPromise<TResolve>(callback: (resolve: (data?: TResolve) => void, reject: (error?: any) => void) => void, priority: number = 1): Promise<TResolve>
 
-This method adds a job with callback and returns a Promise. The callback provides two functions, the `resolve` and the `reject` when will fulfill the Promise. In `resolve` pass the output of the Promise.
+This method adds a job with callback and returns a Promise. It create a new Promise. The callback provides two functions, the `resolve` and the `reject` when will fulfill the Promise. In `resolve` pass the output of the Promise.
 
 The difference with the callback of other methods is that you have to call the `resolve` or `reject` instead of `done`; that's all!  
 
@@ -91,6 +91,25 @@ queue.addJobPromise((resolve: Function, reject: Function) => {
   });
 ```
 
+## addJobPromised<TResolve>(returnPromise: () => Promise<TResolve>, priority: number = 1): Promise<TResolve>
+
+This method adds a job from a Promise. 
+
+Since the Promise by it's nature is executed instantly, you have to pass a callback that will execute the promise at the proper time.
+
+**example:**
+
+```
+queue.addJobPromises((resolve: Function, reject: Function) => {
+  return fetch('http://api.example.com/customer-info?:id=4853847343');
+}, 2) // <-- this 2 is the priority
+  .then((data: any) => {
+    // our resloved data are here
+  })
+  .catch((err: any)) => {
+    // our exception is dropped here
+  });
+```
 
 # Properties
 

@@ -8,8 +8,6 @@ export interface IDynaJobQueueStats {
 }
 
 interface IQJob {
-  command: string;
-  data: any;
   priority: number;
   callback: Function;
   internalPriority: number,
@@ -26,11 +24,7 @@ export class DynaJobQueue {
     }
   }
 
-  public addJobCallback(callback: (done: Function) => void, priority: number = 1): void {
-    this.addJob(null, null, priority, callback);
-  }
-
-  public addJobPromise<TData>(callback: (resolve: (data?: TData) => void, reject: (error?: any) => void) => void, priority: number = 1): Promise<TData> {
+  public addJobPromise<TResolve>(callback: (resolve: (data?: TResolve) => void, reject: (error?: any) => void) => void, priority: number = 1): Promise<TResolve> {
     return new Promise((resolve: (data: any) => void, reject: (error: any) => void) => {
       this.addJobCallback(
         (done: Function) => callback(
@@ -46,6 +40,28 @@ export class DynaJobQueue {
     });
   }
 
+  public addJobPromised<TResolve>(returnPromise: () => Promise<TResolve>, priority: number = 1): Promise<TResolve> {
+    return new Promise((resolve: (resolveData: TResolve) => void, reject: (error: any) => void) => {
+      this.addJobCallback(
+        (done: () => void) => {
+          returnPromise()
+            .then((resolveData: TResolve) => {
+              resolve(resolveData);
+              done();
+            })
+            .catch((error: any) => {
+              reject(error);
+              done();
+            });
+        },
+        priority);
+    });
+  }
+
+  public addJobCallback(callback: (done: Function) => void, priority: number = 1): void {
+    this.addJob(priority, callback);
+  }
+
   public get stats(): IDynaJobQueueStats {
     return {
       jobs: this._jobs.length,
@@ -57,8 +73,8 @@ export class DynaJobQueue {
     return !!this._jobs.length || !!this._parallels;
   }
 
-  private addJob(command: string, data: any, priority: number = 1, callback: (done: Function) => void): void {
-    let job: IQJob = {command, data, priority, internalPriority: this._createPriorityNumber(priority), callback};
+  private addJob(priority: number = 1, callback: (done: Function) => void): void {
+    let job: IQJob = {priority, internalPriority: this._createPriorityNumber(priority), callback};
     this._jobs.push(job);
     this._jobs.sort((jobA: IQJob, jobB: IQJob) => jobA.internalPriority - jobB.internalPriority);
     setTimeout(() => this._execute(), 0);
