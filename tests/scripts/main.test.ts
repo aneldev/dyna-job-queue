@@ -1,7 +1,7 @@
 declare let jasmine: any, describe: any, expect: any, it: any;
 if (typeof jasmine !== 'undefined') jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
 
-import {DynaJobQueue} from '../../src/index';
+import {DynaJobQueue} from '../../src';
 
 // help: https://facebook.github.io/jest/docs/expect.html
 
