@@ -18,10 +18,11 @@ describe('Dyna Job Queue - using addJobCallback()', () => {
   it(`should push ${testForCBJobs} jobs`, () => {
     Array(testForCBJobs).fill(null).forEach((v: any, index: number) => {
       queue.addJobCallback((done: Function) => {
+        testCollectedData.push(`start ${index}`);
         setTimeout(() => {
-          testCollectedData.push({index});
+          testCollectedData.push(`end ${index}`);
           done();
-        }, 100);
+        }, 300);
       });
     });
   });
@@ -32,11 +33,17 @@ describe('Dyna Job Queue - using addJobCallback()', () => {
 
   it(`should pick last ${testForCBJobs} job in correct order`, (done: Function) => {
     setTimeout(() => {
-      testCollectedData.forEach((data: any, index: number) => {
-        expect(data.index).toBe(index);
-      });
+      const expected: string =
+        Array(testForCBJobs).fill(null)
+          .reduce((acc: string[], v: any, index: number) => {
+            acc.push(`start ${index}`);
+            acc.push(`end ${index}`);
+            return acc;
+          }, []);
+      expect(JSON.stringify(testCollectedData, null,2))
+        .toBe(JSON.stringify(expected, null, 2));
       done();
-    }, (testForCBJobs * 100) + 500);
+    }, (testForCBJobs * 300) + 500);
   });
 
   it('expects the pending jobs should 0', () => {
