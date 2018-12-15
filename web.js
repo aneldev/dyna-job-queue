@@ -262,10 +262,10 @@ exports.DynaJobQueue = DynaJobQueue;
 
 /***/ }),
 
-/***/ "./src/index.ts":
-/*!**********************!*\
-  !*** ./src/index.ts ***!
-  \**********************/
+/***/ "./src/web.ts":
+/*!********************!*\
+  !*** ./src/web.ts ***!
+  \********************/
 /*! no static exports found */
 /*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
@@ -280,29 +280,6 @@ Object.defineProperty(exports, "__esModule", {
 var DynaJobQueue_1 = __webpack_require__(/*! ./DynaJobQueue */ "./src/DynaJobQueue.ts");
 
 exports.DynaJobQueue = DynaJobQueue_1.DynaJobQueue;
-
-/***/ }),
-
-/***/ "./src/web.ts":
-/*!********************!*\
-  !*** ./src/web.ts ***!
-  \********************/
-/*! no static exports found */
-/*! all exports used */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-function __export(m) {
-  for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-__export(__webpack_require__(/*! ./ */ "./src/index.ts"));
 
 /***/ })
 

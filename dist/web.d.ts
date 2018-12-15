@@ -1,1 +1,1 @@
-export * from "./";
+export { DynaJobQueue, IDynaJobQueueConfig, IDynaJobQueueStats, } from "./DynaJobQueue";

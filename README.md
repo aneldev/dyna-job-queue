@@ -122,3 +122,17 @@ queue.addJobPromises((resolve: Function, reject: Function) => {
 Note: it is possible to have `jobs` but not `running` in the rare case of switching the jobs. 
 
 
+# Change log
+
+## v2.0.0 
+
+First stable version
+
+## v3.0.0
+
+Export `web` and `node` versions.
+
+You should import from `dyna-job-queue/web` or `dyna-job-queue/node` according your running environment.
+
+For universal apps you should import with lazy load.
+ 
