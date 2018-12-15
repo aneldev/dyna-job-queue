@@ -280,7 +280,7 @@ Object.defineProperty(exports, "__esModule", {
 var DynaJobQueue_1 = __webpack_require__(/*! ./DynaJobQueue */ "./src/DynaJobQueue.ts");
 
 exports.DynaJobQueue = DynaJobQueue_1.DynaJobQueue;
-console.error("\nmy-module: Import error\n    You should import \"my-module/web\" or \"my-module/node\" (with lazy  or not) according the runtime environment.\n    For typescript, you should import the types from \"my-module\" but functional code from web or node versions.\n    More for how to import with conditional lazy load: https://github.com/aneldev/dyna-ts-module-boilerplate#how-to-import\n");
+console.error("\ndyna-job-queue: Import error\n    You should import \"dyna-job-queue/web\" or \"dyna-job-queue/node\" (with lazy  or not) according the runtime environment.\n    For typescript, you should import the types from \"dyna-job-queue\" but functional code from web or node versions.\n    More for how to import with conditional lazy load: https://github.com/aneldev/dyna-ts-module-boilerplate#how-to-import\n");
 
 /***/ })
 
