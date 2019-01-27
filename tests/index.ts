@@ -1,6 +1,6 @@
 import "dyna-node-console";
 
-import "./utils/mock-jest";
-import "../utils/unhandledPromiseRejections";
+import "../dyna/mock-jest";
+import "../dyna/unhandledPromiseRejections";
 
 import "./scripts/main.test";

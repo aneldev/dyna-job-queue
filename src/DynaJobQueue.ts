@@ -82,7 +82,7 @@ export class DynaJobQueue {
 
   private _execute(): void {
     if (this._parallels === this._config.parallels) return;
-    const jobToExecute: IQJob = this._jobs.shift();
+    const jobToExecute: IQJob | undefined= this._jobs.shift();
     if (this._jobs.length === 0) this._internalCounter = 0;
 
     if (jobToExecute) {
