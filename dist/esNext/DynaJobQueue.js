@@ -52,6 +52,17 @@ var DynaJobQueue = /** @class */ (function () {
         if (priority === void 0) { priority = 1; }
         this.addJob(priority, callback);
     };
+    DynaJobQueue.prototype.jobFactory = function (func, priority) {
+        var _this = this;
+        if (priority === void 0) { priority = 1; }
+        return function () {
+            var params = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                params[_i] = arguments[_i];
+            }
+            return _this.addJobPromised(function () { return func.apply(void 0, params); }, priority);
+        };
+    };
     Object.defineProperty(DynaJobQueue.prototype, "stats", {
         get: function () {
             return {
