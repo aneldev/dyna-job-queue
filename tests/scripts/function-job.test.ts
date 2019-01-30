@@ -1,4 +1,4 @@
-declare let jasmine: any, describe: any, expect: any, it: any;
+import "jest";
 if (typeof jasmine !== 'undefined') jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 import {DynaJobQueue} from '../../src';
@@ -160,60 +160,5 @@ describe('Dyna Job Queue - using parallels', () => {
     expect(times[2] < 500).toBe(true);
     expect(times[3] > 1000).toBe(true);
     expect(times[4] > 1000).toBe(true);
-  });
-});
-
-describe('Dyna Job Queue - jobFunction', () => {
-  let queue = new DynaJobQueue({parallels: 3});
-
-  class NewsFeeder {
-    private readonly feeds: number[] = [];
-
-    constructor() {
-      this.addFeed = queue.jobFactory(this.addFeed.bind(this));
-    }
-
-    public addFeed(feed: number, afterDelay: number): Promise<number> {
-      return new Promise((resolve: Function) => {
-        setTimeout(() => {
-          this.feeds.push(feed);
-          resolve(feed);
-        }, afterDelay);
-      });
-    }
-
-    public getFeeds(): number[] {
-      return this.feeds;
-    }
-
-    public clearFeeds(): void {
-      while (this.getFeeds().pop()) {
-      }
-    }
-  }
-
-  const newsFeeder = new NewsFeeder();
-
-  it('adds an item to the feeder', (done: Function) => {
-    newsFeeder.addFeed(12, 200)
-      .then(() => newsFeeder.getFeeds())
-      .then(feeds => {
-        expect(feeds.length).toBe(1);
-        expect(feeds[0]).toBe(12);
-        newsFeeder.clearFeeds();
-        done();
-      })
-  });
-
-  it('adds items with different delay', (done: Function) => {
-    Promise.all([
-      newsFeeder.addFeed(100, 2),
-      newsFeeder.addFeed(110, 200),
-      newsFeeder.addFeed(105, 100),
-    ])
-      .then(() => {
-        expect(newsFeeder.getFeeds().join()).toBe("100,105,110");
-        done();
-      });
   });
 });

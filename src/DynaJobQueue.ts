@@ -62,6 +62,11 @@ export class DynaJobQueue {
     this.addJob(priority, callback);
   }
 
+  public jobFactory<TResolve>(func: (...params: any[]) => Promise<TResolve>, priority: number = 1): () => Promise<TResolve> {
+    return (...params: any[]) =>
+      this.addJobPromised(() => func(...params), priority);
+  }
+
   public get stats(): IDynaJobQueueStats {
     return {
       jobs: this._jobs.length,

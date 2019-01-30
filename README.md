@@ -22,6 +22,41 @@ interface IDynaJobQueueConfig {
 }
 ```
 
+## jobFactory<TResolve>(func: (...params: any[]) => Promise<TResolve>, priority: number = 1): () => Promise<TResolve>
+
+Although the signature looks quite complex, is the easiest method of the job queue ever.
+
+It converts an already existed function/method that returns `Promise`, to a job that will be added to the queue.
+
+Once you wrapped it the only you have is to call is as you did before. Nothing is changed.
+
+For typescript writers, there is no need even to define the `TResolve`, as explicitly comes from method's definition. 
+
+**example**:
+
+```
+class NewsFeeder {
+    private readonly feeds: number[] = [];
+    private queue = new DynaNodeQueue();
+    
+    constructor() {
+      this.addFeed = this.queue.jobFactory(this.addFeed.bind(this));  // That's all
+    }
+    
+    public addFeed(feed: number, afterDelay: number): Promise<number> {
+      return new Promise((resolve: Function) => {
+        setTimeout(() => {
+          this.feeds.push(feed);
+          resolve(feed);
+        }, afterDelay);
+      });
+    }
+}
+
+
+```
+ 
+
 ## addJob(command: string, data: any, priority: number = 1): void
 
 Adds a job and will be executed when all other jobs will be executed (FIFO) according also the priority (where is optional).
