@@ -5,7 +5,7 @@ import {DynaJobQueue} from '../../src';
 
 // help: https://facebook.github.io/jest/docs/expect.html
 
-describe('Dyna Job Queue - using addJobCallback()', () => {
+describe.skip('Dyna Job Queue - using addJobCallback()', () => {
 
   let queue = new DynaJobQueue();
   const testForCBJobs: number = 10;
@@ -52,7 +52,7 @@ describe('Dyna Job Queue - using addJobCallback()', () => {
 
 });
 
-describe('Dyna Job Queue - using addJobPromise()', () => {
+describe.skip('Dyna Job Queue - using addJobPromise()', () => {
   let queue = new DynaJobQueue();
   const testForCBJobs: number = 10;
   const testCollectedData: any[] = [];
@@ -83,7 +83,7 @@ describe('Dyna Job Queue - using addJobPromise()', () => {
 
 });
 
-describe('Dyna Job Queue - using addJobPromised()', () => {
+describe.skip('Dyna Job Queue - using addJobPromised()', () => {
   let queue = new DynaJobQueue();
   const testForCBJobs: number = 10;
   const testCollectedData: any[] = [];
@@ -116,7 +116,7 @@ describe('Dyna Job Queue - using addJobPromised()', () => {
 
 });
 
-describe('Dyna Job Queue - using parallels', () => {
+describe.skip('Dyna Job Queue - using parallels', () => {
   let queue = new DynaJobQueue({parallels: 3});
   let times: { [index: string]: number };
 
@@ -207,12 +207,13 @@ describe('Dyna Job Queue - jobFunction', () => {
 
   it('adds items with different delay', (done: Function) => {
     Promise.all([
+      newsFeeder.addFeed(110, 100),
+      newsFeeder.addFeed(105, 200),
       newsFeeder.addFeed(100, 2),
-      newsFeeder.addFeed(110, 200),
-      newsFeeder.addFeed(105, 100),
     ])
-      .then(() => {
-        expect(newsFeeder.getFeeds().join()).toBe("100,105,110");
+      .then((executed) => {
+        expect(executed.join()).toBe("110,105,100");
+        expect(newsFeeder.getFeeds().join()).toBe("100,110,105");
         done();
       });
   });
