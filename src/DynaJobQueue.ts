@@ -21,7 +21,7 @@ export class DynaJobQueue {
     this._config = {
       parallels: 1,
       ...this._config
-    }
+    };
   }
 
   public addJobPromise<TResolve>(callback: (resolve: (data?: TResolve) => void, reject: (error?: any) => void) => void, priority: number = 1): Promise<TResolve> {
