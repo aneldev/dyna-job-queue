@@ -1,11 +1,11 @@
-declare let jasmine: any, describe: any, expect: any, it: any;
+import "jest";
 if (typeof jasmine !== 'undefined') jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 import {DynaJobQueue} from '../../src';
 
 // help: https://facebook.github.io/jest/docs/expect.html
 
-describe.skip('Dyna Job Queue - using addJobCallback()', () => {
+describe('Dyna Job Queue - using addJobCallback()', () => {
 
   let queue = new DynaJobQueue();
   const testForCBJobs: number = 10;
@@ -52,7 +52,7 @@ describe.skip('Dyna Job Queue - using addJobCallback()', () => {
 
 });
 
-describe.skip('Dyna Job Queue - using addJobPromise()', () => {
+describe('Dyna Job Queue - using addJobPromise()', () => {
   let queue = new DynaJobQueue();
   const testForCBJobs: number = 10;
   const testCollectedData: any[] = [];
@@ -83,7 +83,7 @@ describe.skip('Dyna Job Queue - using addJobPromise()', () => {
 
 });
 
-describe.skip('Dyna Job Queue - using addJobPromised()', () => {
+describe('Dyna Job Queue - using addJobPromised()', () => {
   let queue = new DynaJobQueue();
   const testForCBJobs: number = 10;
   const testCollectedData: any[] = [];
@@ -116,7 +116,7 @@ describe.skip('Dyna Job Queue - using addJobPromised()', () => {
 
 });
 
-describe.skip('Dyna Job Queue - using parallels', () => {
+describe('Dyna Job Queue - using parallels', () => {
   let queue = new DynaJobQueue({parallels: 3});
   let times: { [index: string]: number };
 
@@ -217,4 +217,57 @@ describe('Dyna Job Queue - jobFunction', () => {
         done();
       });
   });
+});
+
+describe('Dyna Job Queue - allDone() at the end', () => {
+  const queue = new DynaJobQueue({parallels: 1});
+  let text = "";
+
+  let addText = (subText: string) => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        text += subText;
+        resolve();
+      }, 200)
+    });
+  };
+  addText = queue.jobFactory(addText);
+
+  it('the allDone() is called on time', async () => {
+    addText('1');
+    addText('2');
+    addText('3');
+    await queue.allDone();
+    text += 'Done';
+    expect(text).toBe('123Done');
+  });
+
+});
+
+describe('Dyna Job Queue - allDone() after first job', () => {
+  const queue = new DynaJobQueue({parallels: 1});
+  let text = "";
+
+  let addText = (subText: string) => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        text += subText;
+        resolve();
+      }, 200)
+    });
+  };
+  addText = queue.jobFactory(addText);
+
+  it('the allDone() is called on time', (done) => {
+    addText('1');
+    queue.allDone()
+      .then(() => {
+        text += 'Done';
+        expect(text).toBe('123Done');
+        done();
+      });
+    addText('2');
+    addText('3');
+  });
+
 });
