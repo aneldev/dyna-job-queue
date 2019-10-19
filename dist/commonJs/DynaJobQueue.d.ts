@@ -9,6 +9,7 @@ export declare class DynaJobQueue {
     private _config;
     private _jobs;
     private _parallels;
+    private readonly _completeCallbacks;
     constructor(_config?: IDynaJobQueueConfig);
     addJobPromise<TResolve>(callback: (resolve: (data?: TResolve) => void, reject: (error?: any) => void) => void, priority?: number): Promise<TResolve>;
     addJobPromised<TResolve>(returnPromise: () => Promise<TResolve>, priority?: number): Promise<TResolve>;
@@ -16,6 +17,7 @@ export declare class DynaJobQueue {
     jobFactory<TResolve>(func: (...params: any[]) => Promise<TResolve>, priority?: number): () => Promise<TResolve>;
     readonly stats: IDynaJobQueueStats;
     readonly isWorking: boolean;
+    allDone(): Promise<void>;
     private addJob;
     private _execute;
     private _internalCounter;
