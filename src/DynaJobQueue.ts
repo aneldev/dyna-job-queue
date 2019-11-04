@@ -1,5 +1,5 @@
 export interface IDynaJobQueueConfig {
-  parallels?: number;
+  parallels?: number;   // Default is 1
 }
 
 export interface IDynaJobQueueStats {
