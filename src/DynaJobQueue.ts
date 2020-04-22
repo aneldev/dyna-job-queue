@@ -1,5 +1,5 @@
 export interface IDynaJobQueueConfig {
-  parallels?: number;
+  parallels?: number;   // Default is 1
 }
 
 export interface IDynaJobQueueStats {
@@ -16,6 +16,7 @@ interface IQJob {
 export class DynaJobQueue {
   private _jobs: IQJob[] = [];
   private _parallels: number = 0;
+  private readonly _completeCallbacks: any[] = [];
 
   constructor(private _config: IDynaJobQueueConfig = {}) {
     this._config = {
@@ -78,6 +79,11 @@ export class DynaJobQueue {
     return !!this._jobs.length || !!this._parallels;
   }
 
+  public async allDone(): Promise<void> {
+    if (!this.isWorking) return;
+    return new Promise(resolve => this._completeCallbacks.push(resolve));
+  }
+
   private addJob(priority: number = 1, callback: (done: Function) => void): void {
     let job: IQJob = {priority, internalPriority: this._createPriorityNumber(priority), callback};
     this._jobs.push(job);
@@ -96,6 +102,9 @@ export class DynaJobQueue {
         this._parallels--;
         this._execute();
       });
+    }
+    else {
+      while (this._completeCallbacks.length) this._completeCallbacks.shift()();
     }
   }
 

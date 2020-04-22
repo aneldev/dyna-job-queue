@@ -146,6 +146,10 @@ queue.addJobPromises((resolve: Function, reject: Function) => {
   });
 ```
 
+## alldone(): Promise<void>
+
+Promise that is resolved when the queue becomes empty.
+
 # Properties
 
 ## stats: { jobs: number, running: number}}
@@ -170,4 +174,7 @@ Export `web` and `node` versions.
 You should import from `dyna-job-queue/web` or `dyna-job-queue/node` according your running environment.
 
 For universal apps you should import with lazy load.
- 
+
+## v5.1.0
+
+New method `allDone()`.

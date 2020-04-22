@@ -216,3 +216,56 @@ describe('Dyna Job Queue - jobFunction', () => {
       });
   });
 });
+
+describe('Dyna Job Queue - allDone() at the end', () => {
+  const queue = new DynaJobQueue({parallels: 1});
+  let text = "";
+
+  let addText = (subText: string) => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        text += subText;
+        resolve();
+      }, 200)
+    });
+  };
+  addText = queue.jobFactory(addText);
+
+  it('the allDone() is called on time', async () => {
+    addText('1');
+    addText('2');
+    addText('3');
+    await queue.allDone();
+    text += 'Done';
+    expect(text).toBe('123Done');
+  });
+
+});
+
+describe('Dyna Job Queue - allDone() after first job', () => {
+  const queue = new DynaJobQueue({parallels: 1});
+  let text = "";
+
+  let addText = (subText: string) => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        text += subText;
+        resolve();
+      }, 200)
+    });
+  };
+  addText = queue.jobFactory(addText);
+
+  it('the allDone() is called on time', (done) => {
+    addText('1');
+    queue.allDone()
+      .then(() => {
+        text += 'Done';
+        expect(text).toBe('123Done');
+        done();
+      });
+    addText('2');
+    addText('3');
+  });
+
+});
