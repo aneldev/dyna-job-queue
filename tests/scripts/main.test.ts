@@ -1,11 +1,9 @@
-declare let jasmine: any, describe: any, expect: any, it: any;
-if (typeof jasmine !== 'undefined') jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
-
+import "jest";
 import {DynaJobQueue} from '../../src';
 
 // help: https://facebook.github.io/jest/docs/expect.html
 
-describe.skip('Dyna Job Queue - using addJobCallback()', () => {
+describe('Dyna Job Queue - using addJobCallback()', () => {
 
   let queue = new DynaJobQueue();
   const testForCBJobs: number = 10;
@@ -52,7 +50,7 @@ describe.skip('Dyna Job Queue - using addJobCallback()', () => {
 
 });
 
-describe.skip('Dyna Job Queue - using addJobPromise()', () => {
+describe('Dyna Job Queue - using addJobPromise()', () => {
   let queue = new DynaJobQueue();
   const testForCBJobs: number = 10;
   const testCollectedData: any[] = [];
@@ -83,7 +81,7 @@ describe.skip('Dyna Job Queue - using addJobPromise()', () => {
 
 });
 
-describe.skip('Dyna Job Queue - using addJobPromised()', () => {
+describe('Dyna Job Queue - using addJobPromised()', () => {
   let queue = new DynaJobQueue();
   const testForCBJobs: number = 10;
   const testCollectedData: any[] = [];
@@ -116,7 +114,7 @@ describe.skip('Dyna Job Queue - using addJobPromised()', () => {
 
 });
 
-describe.skip('Dyna Job Queue - using parallels', () => {
+describe('Dyna Job Queue - using parallels', () => {
   let queue = new DynaJobQueue({parallels: 3});
   let times: { [index: string]: number };
 
