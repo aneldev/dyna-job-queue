@@ -1,6 +1,9 @@
 export interface IDynaJobQueueConfig {
   parallels?: number;   // Default is 1
+  _debug_DynaJobQueue?: string;
 }
+
+console.debug('NEW dyna job queue - v2')
 
 export interface IDynaJobQueueStats {
   jobs: number;
@@ -18,11 +21,40 @@ export class DynaJobQueue {
   private _parallels: number = 0;
   private readonly _completeCallbacks: any[] = [];
 
-  constructor(private _config: IDynaJobQueueConfig = {}) {
+  constructor(private readonly _config: IDynaJobQueueConfig = {}) {
     this._config = {
       parallels: 1,
       ...this._config
     };
+  }
+
+  public jobFactory<TResolve>(func: (...params: any[]) => Promise<TResolve>, priority: number = 1): () => Promise<TResolve> {
+    return (...params: any[]) => {
+      this.consoleDebug('JobFactory_return_addJobPromised__001')
+      return this.addJobPromised(() => func(...params), priority);
+    }
+  }
+
+  public addJobPromised<TResolve>(returnPromise: () => Promise<TResolve>, priority: number = 1): Promise<TResolve> {
+    return new Promise((resolve: (resolveData: TResolve) => void, reject: (error: any) => void) => {
+      this.consoleDebug('addJobPromised__002');
+
+      this.addJobCallback(
+        (done: () => void) => {
+          returnPromise()
+            .then((resolveData: TResolve) => {
+              this.consoleDebug('addJobPromised__002_resolve');
+              resolve(resolveData);
+              done();
+            })
+            .catch((error: any) => {
+              this.consoleDebug('addJobPromised__002_reject');
+              reject(error);
+              done();
+            });
+        },
+        priority);
+    });
   }
 
   public addJobPromise<TResolve>(callback: (resolve: (data?: TResolve) => void, reject: (error?: any) => void) => void, priority: number = 1): Promise<TResolve> {
@@ -41,31 +73,14 @@ export class DynaJobQueue {
     });
   }
 
-  public addJobPromised<TResolve>(returnPromise: () => Promise<TResolve>, priority: number = 1): Promise<TResolve> {
-    return new Promise((resolve: (resolveData: TResolve) => void, reject: (error: any) => void) => {
-      this.addJobCallback(
-        (done: () => void) => {
-          returnPromise()
-            .then((resolveData: TResolve) => {
-              resolve(resolveData);
-              done();
-            })
-            .catch((error: any) => {
-              reject(error);
-              done();
-            });
-        },
-        priority);
-    });
-  }
-
   public addJobCallback(callback: (done: Function) => void, priority: number = 1): void {
-    this.addJob(priority, callback);
+    this.addJob(callback, priority);
   }
 
-  public jobFactory<TResolve>(func: (...params: any[]) => Promise<TResolve>, priority: number = 1): () => Promise<TResolve> {
-    return (...params: any[]) =>
-      this.addJobPromised(() => func(...params), priority);
+  private consoleDebug = (...args: any[]): void => {
+    const debugMessage = this._config._debug_DynaJobQueue;
+    if (!debugMessage) return;
+    console.debug('DYNA_JOB_QUEUE', debugMessage, Date.now(), ...args);
   }
 
   public get stats(): IDynaJobQueueStats {
@@ -84,16 +99,20 @@ export class DynaJobQueue {
     return new Promise(resolve => this._completeCallbacks.push(resolve));
   }
 
-  private addJob(priority: number = 1, callback: (done: Function) => void): void {
-    let job: IQJob = {priority, internalPriority: this._createPriorityNumber(priority), callback};
+  private addJob(callback: (done: Function) => void, priority: number = 1): void {
+    let job: IQJob = {
+      priority,
+      internalPriority: this._createPriorityNumber(priority),
+      callback,
+    };
     this._jobs.push(job);
     this._jobs.sort((jobA: IQJob, jobB: IQJob) => jobA.internalPriority - jobB.internalPriority);
-    setTimeout(() => this._execute(), 0);
+    this._execute();
   }
 
   private _execute(): void {
     if (this._parallels === this._config.parallels) return;
-    const jobToExecute: IQJob | undefined= this._jobs.shift();
+    const jobToExecute: IQJob | undefined = this._jobs.shift();
     if (this._jobs.length === 0) this._internalCounter = 0;
 
     if (jobToExecute) {
