@@ -54,18 +54,16 @@ var DynaJobQueue = /** @class */ (function () {
         this._internalCounter = 0;
         this._config = __assign({ parallels: 1 }, this._config);
     }
-    DynaJobQueue.prototype.addJobPromise = function (callback, priority) {
+    DynaJobQueue.prototype.jobFactory = function (func, priority) {
         var _this = this;
         if (priority === void 0) { priority = 1; }
-        return new Promise(function (resolve, reject) {
-            _this.addJobCallback(function (done) { return callback(function (data) {
-                resolve(data);
-                done();
-            }, function (error) {
-                reject(error);
-                done();
-            }); }, priority);
-        });
+        return function () {
+            var params = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                params[_i] = arguments[_i];
+            }
+            return _this.addJobPromised(function () { return func.apply(void 0, params); }, priority);
+        };
     };
     DynaJobQueue.prototype.addJobPromised = function (returnPromise, priority) {
         var _this = this;
@@ -84,20 +82,22 @@ var DynaJobQueue = /** @class */ (function () {
             }, priority);
         });
     };
-    DynaJobQueue.prototype.addJobCallback = function (callback, priority) {
-        if (priority === void 0) { priority = 1; }
-        this.addJob(priority, callback);
-    };
-    DynaJobQueue.prototype.jobFactory = function (func, priority) {
+    DynaJobQueue.prototype.addJobPromise = function (callback, priority) {
         var _this = this;
         if (priority === void 0) { priority = 1; }
-        return function () {
-            var params = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                params[_i] = arguments[_i];
-            }
-            return _this.addJobPromised(function () { return func.apply(void 0, params); }, priority);
-        };
+        return new Promise(function (resolve, reject) {
+            _this.addJobCallback(function (done) { return callback(function (data) {
+                resolve(data);
+                done();
+            }, function (error) {
+                reject(error);
+                done();
+            }); }, priority);
+        });
+    };
+    DynaJobQueue.prototype.addJobCallback = function (callback, priority) {
+        if (priority === void 0) { priority = 1; }
+        this.addJob(callback, priority);
     };
     Object.defineProperty(DynaJobQueue.prototype, "stats", {
         get: function () {
@@ -126,13 +126,16 @@ var DynaJobQueue = /** @class */ (function () {
             });
         });
     };
-    DynaJobQueue.prototype.addJob = function (priority, callback) {
-        var _this = this;
+    DynaJobQueue.prototype.addJob = function (callback, priority) {
         if (priority === void 0) { priority = 1; }
-        var job = { priority: priority, internalPriority: this._createPriorityNumber(priority), callback: callback };
+        var job = {
+            priority: priority,
+            internalPriority: this._createPriorityNumber(priority),
+            callback: callback,
+        };
         this._jobs.push(job);
         this._jobs.sort(function (jobA, jobB) { return jobA.internalPriority - jobB.internalPriority; });
-        setTimeout(function () { return _this._execute(); }, 0);
+        this._execute();
     };
     DynaJobQueue.prototype._execute = function () {
         var _this = this;

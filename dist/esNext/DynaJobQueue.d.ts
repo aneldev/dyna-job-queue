@@ -6,15 +6,15 @@ export interface IDynaJobQueueStats {
     running: number;
 }
 export declare class DynaJobQueue {
-    private _config;
+    private readonly _config;
     private _jobs;
     private _parallels;
     private readonly _completeCallbacks;
     constructor(_config?: IDynaJobQueueConfig);
-    addJobPromise<TResolve>(callback: (resolve: (data?: TResolve) => void, reject: (error?: any) => void) => void, priority?: number): Promise<TResolve>;
-    addJobPromised<TResolve>(returnPromise: () => Promise<TResolve>, priority?: number): Promise<TResolve>;
-    addJobCallback(callback: (done: Function) => void, priority?: number): void;
     jobFactory<TResolve>(func: (...params: any[]) => Promise<TResolve>, priority?: number): () => Promise<TResolve>;
+    addJobPromised<TResolve>(returnPromise: () => Promise<TResolve>, priority?: number): Promise<TResolve>;
+    addJobPromise<TResolve>(callback: (resolve: (data?: TResolve) => void, reject: (error?: any) => void) => void, priority?: number): Promise<TResolve>;
+    addJobCallback(callback: (done: Function) => void, priority?: number): void;
     readonly stats: IDynaJobQueueStats;
     readonly isWorking: boolean;
     allDone(): Promise<void>;
