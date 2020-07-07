@@ -46,25 +46,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-console.debug('NEW dyna job queue - v2');
 var DynaJobQueue = /** @class */ (function () {
     function DynaJobQueue(_config) {
         if (_config === void 0) { _config = {}; }
-        var _this = this;
         this._config = _config;
         this._jobs = [];
         this._parallels = 0;
         this._completeCallbacks = [];
-        this.consoleDebug = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            var debugMessage = _this._config._debug_DynaJobQueue;
-            if (!debugMessage)
-                return;
-            console.debug.apply(console, ['DYNA_JOB_QUEUE', debugMessage, Date.now()].concat(args));
-        };
         this._internalCounter = 0;
         this._config = __assign({ parallels: 1 }, this._config);
     }
@@ -76,7 +64,6 @@ var DynaJobQueue = /** @class */ (function () {
             for (var _i = 0; _i < arguments.length; _i++) {
                 params[_i] = arguments[_i];
             }
-            _this.consoleDebug('JobFactory_return_addJobPromised__001');
             return _this.addJobPromised(function () { return func.apply(void 0, params); }, priority);
         };
     };
@@ -84,16 +71,13 @@ var DynaJobQueue = /** @class */ (function () {
         var _this = this;
         if (priority === void 0) { priority = 1; }
         return new Promise(function (resolve, reject) {
-            _this.consoleDebug('addJobPromised__002');
             _this.addJobCallback(function (done) {
                 returnPromise()
                     .then(function (resolveData) {
-                    _this.consoleDebug('addJobPromised__002_resolve');
                     resolve(resolveData);
                     done();
                 })
                     .catch(function (error) {
-                    _this.consoleDebug('addJobPromised__002_reject');
                     reject(error);
                     done();
                 });

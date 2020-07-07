@@ -1,9 +1,6 @@
 export interface IDynaJobQueueConfig {
   parallels?: number;   // Default is 1
-  _debug_DynaJobQueue?: string;
 }
-
-console.debug('NEW dyna job queue - v2')
 
 export interface IDynaJobQueueStats {
   jobs: number;
@@ -30,25 +27,20 @@ export class DynaJobQueue {
 
   public jobFactory<TResolve>(func: (...params: any[]) => Promise<TResolve>, priority: number = 1): () => Promise<TResolve> {
     return (...params: any[]) => {
-      this.consoleDebug('JobFactory_return_addJobPromised__001')
       return this.addJobPromised(() => func(...params), priority);
     }
   }
 
   public addJobPromised<TResolve>(returnPromise: () => Promise<TResolve>, priority: number = 1): Promise<TResolve> {
     return new Promise((resolve: (resolveData: TResolve) => void, reject: (error: any) => void) => {
-      this.consoleDebug('addJobPromised__002');
-
       this.addJobCallback(
         (done: () => void) => {
           returnPromise()
             .then((resolveData: TResolve) => {
-              this.consoleDebug('addJobPromised__002_resolve');
               resolve(resolveData);
               done();
             })
             .catch((error: any) => {
-              this.consoleDebug('addJobPromised__002_reject');
               reject(error);
               done();
             });
@@ -75,12 +67,6 @@ export class DynaJobQueue {
 
   public addJobCallback(callback: (done: Function) => void, priority: number = 1): void {
     this.addJob(callback, priority);
-  }
-
-  private consoleDebug = (...args: any[]): void => {
-    const debugMessage = this._config._debug_DynaJobQueue;
-    if (!debugMessage) return;
-    console.debug('DYNA_JOB_QUEUE', debugMessage, Date.now(), ...args);
   }
 
   public get stats(): IDynaJobQueueStats {

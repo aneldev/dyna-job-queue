@@ -1,6 +1,5 @@
 export interface IDynaJobQueueConfig {
     parallels?: number;
-    _debug_DynaJobQueue?: string;
 }
 export interface IDynaJobQueueStats {
     jobs: number;
@@ -16,7 +15,6 @@ export declare class DynaJobQueue {
     addJobPromised<TResolve>(returnPromise: () => Promise<TResolve>, priority?: number): Promise<TResolve>;
     addJobPromise<TResolve>(callback: (resolve: (data?: TResolve) => void, reject: (error?: any) => void) => void, priority?: number): Promise<TResolve>;
     addJobCallback(callback: (done: Function) => void, priority?: number): void;
-    private consoleDebug;
     readonly stats: IDynaJobQueueStats;
     readonly isWorking: boolean;
     allDone(): Promise<void>;
