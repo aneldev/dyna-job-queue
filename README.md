@@ -37,7 +37,7 @@ For typescript writers, there is no need even to define the `TResolve`, as expli
 ```
 class NewsFeeder {
     private readonly feeds: number[] = [];
-    private queue = new DynaNodeQueue();
+    private queue = new DynaJobueue();
     
     constructor() {
       this.addFeed = this.queue.jobFactory(this.addFeed.bind(this));  // That's all
