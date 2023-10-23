@@ -1,13 +1,16 @@
 import "jest";
+
+import {count} from "dyna-count";
+
 import {DynaJobQueue} from '../../src';
-import { count } from "dyna-count";
 
 // help: https://facebook.github.io/jest/docs/expect.html
 
 describe('Dyna Job Queue - using addJobCallback()', () => {
 
   let queue = new DynaJobQueue();
-  const testCollectedData: any[] = [];
+  const testCollectedData: string[] = [];
+
 
   it('expects the pending jobs should 0', () => {
     expect(queue.stats.jobs).toBe(0);
@@ -15,7 +18,7 @@ describe('Dyna Job Queue - using addJobCallback()', () => {
 
   it(`should push 10 jobs`, () => {
     count(10).for((index: number) => {
-      queue.addJobCallback((done: Function) => {
+      queue.addJobCallback((done: () => undefined) => {
         testCollectedData.push(`start ${index}`);
         setTimeout(() => {
           testCollectedData.push(`end ${index}`);
@@ -30,7 +33,7 @@ describe('Dyna Job Queue - using addJobCallback()', () => {
     expect(testCollectedData.length).toBe(1);
   });
 
-  it(`should pick last 10 job in correct order`, (done: Function) => {
+  it(`should pick last 10 job in correct order`, (done: () => undefined) => {
     setTimeout(() => {
       const expected: string[] =
         count(10)
@@ -39,7 +42,7 @@ describe('Dyna Job Queue - using addJobCallback()', () => {
             acc.push(`end ${index}`);
             return acc;
           }, []);
-      expect(JSON.stringify(testCollectedData, null,2))
+      expect(JSON.stringify(testCollectedData, null, 2))
         .toBe(JSON.stringify(expected, null, 2));
       done();
     }, (10 * 300) + 500);
@@ -55,9 +58,9 @@ describe('Dyna Job Queue - using addJobPromise()', () => {
   let queue = new DynaJobQueue();
   const testCollectedData: any[] = [];
 
-  it(`should push 10 jobs`, (done: Function) => {
+  it(`should push 10 jobs`, (done: () => undefined) => {
     for (let i: number = 0; i < 10; i++) {
-      queue.addJobPromise((resolve: Function, reject: Function) => {
+      queue.addJobPromise((resolve) => {
         setTimeout(() => {
           let data: any = {index: i};
           testCollectedData.push(data);
@@ -85,7 +88,7 @@ describe('Dyna Job Queue - using addJobPromised()', () => {
   let queue = new DynaJobQueue();
   const testCollectedData: any[] = [];
 
-  it(`should push 10 jobs`, (done: Function) => {
+  it(`should push 10 jobs`, (done: () => undefined) => {
     for (let i: number = 0; i < 10; i++) {
       queue.addJobPromised(() => {
         return new Promise((resolve: (date: any) => void) => {
@@ -117,12 +120,12 @@ describe('Dyna Job Queue - using parallels', () => {
   let queue = new DynaJobQueue({parallels: 3});
   let times: { [index: string]: number };
 
-  it('should push 5 jobs', (done: Function) => {
+  it('should push 5 jobs', (done: () => undefined) => {
     times = {};
     const now: number = Number(new Date);
     const getNow = (): number => Number(new Date) - now;
     count(5).for((index: number) => {
-      queue.addJobPromise((resolve: Function) => {
+      queue.addJobPromise((resolve) => {
         times[index] = getNow();
         setTimeout(resolve, 1000);
       });
@@ -138,12 +141,12 @@ describe('Dyna Job Queue - using parallels', () => {
     expect(times[4] > 1000).toBe(true);
   });
 
-  it('should push 5 jobs (again)', (done: Function) => {
+  it('should push 5 jobs (again)', (done: () => undefined) => {
     times = {};
     const now: number = Number(new Date);
     const getNow = (): number => Number(new Date) - now;
     count(5).for((index: number) => {
-      queue.addJobPromise((resolve: Function) => {
+      queue.addJobPromise((resolve) => {
         times[index] = getNow();
         setTimeout(resolve, 1000);
       });
@@ -171,7 +174,7 @@ describe('Dyna Job Queue - jobFunction', () => {
     }
 
     public addFeed(feed: number, afterDelay: number): Promise<number> {
-      return new Promise((resolve: Function) => {
+      return new Promise((resolve) => {
         setTimeout(() => {
           this.feeds.push(feed);
           resolve(feed);
@@ -191,7 +194,7 @@ describe('Dyna Job Queue - jobFunction', () => {
 
   const newsFeeder = new NewsFeeder();
 
-  it('adds an item to the feeder', (done: Function) => {
+  it('adds an item to the feeder', (done: () => undefined) => {
     newsFeeder.addFeed(12, 200)
       .then(() => newsFeeder.getFeeds())
       .then(feeds => {
@@ -202,7 +205,7 @@ describe('Dyna Job Queue - jobFunction', () => {
       })
   });
 
-  it('adds items with different delay', (done: Function) => {
+  it('adds items with different delay', (done: () => undefined) => {
     Promise.all([
       newsFeeder.addFeed(110, 100),
       newsFeeder.addFeed(105, 200),
@@ -221,7 +224,7 @@ describe('Dyna Job Queue - allDone() at the end', () => {
   let text = "";
 
   let addText = (subText: string) => {
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       setTimeout(() => {
         text += subText;
         resolve();
@@ -246,7 +249,7 @@ describe('Dyna Job Queue - allDone() after first job', () => {
   let text = "";
 
   let addText = (subText: string) => {
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       setTimeout(() => {
         text += subText;
         resolve();
@@ -280,21 +283,21 @@ describe('Dyna Job Queue - jobFactory massive calls', () => {
 
   addText = queue.jobFactory(addText);
 
-  it('the jobs are called quickly on massive calls', async (done) => {
+  it('the jobs are called quickly on massive calls', async () => {
     const started = Date.now();
 
     await new Promise(r => setTimeout(r, 100));
 
     await Promise.all(
       count(20)
-        .map(index=> addText(`id-${index}`))
+        .map(index => addText(`id-${index}`))
     );
 
     await new Promise(r => setTimeout(r, 100));
 
     await Promise.all(
       count(20)
-        .map(index=> addText(`id-${index}`))
+        .map(index => addText(`id-${index}`))
     );
 
     const ended = Date.now();
@@ -304,8 +307,6 @@ describe('Dyna Job Queue - jobFactory massive calls', () => {
 
     expect(elapsed).toBeLessThan(500);
     expect(collection).toMatchSnapshot();
-
-    done();
   });
 
 });
