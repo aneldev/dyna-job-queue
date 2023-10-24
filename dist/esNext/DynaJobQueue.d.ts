@@ -14,7 +14,7 @@ export declare class DynaJobQueue {
     jobFactory<TResolve>(func: (...params: any[]) => Promise<TResolve>, priority?: number): () => Promise<TResolve>;
     addJobPromised<TResolve>(returnPromise: () => Promise<TResolve>, priority?: number): Promise<TResolve>;
     addJobPromise<TResolve>(callback: (resolve: (data?: TResolve) => void, reject: (error?: any) => void) => void, priority?: number): Promise<TResolve>;
-    addJobCallback(callback: (done: Function) => void, priority?: number): void;
+    addJobCallback(callback: (done: () => void) => void, priority?: number): void;
     get stats(): IDynaJobQueueStats;
     get isWorking(): boolean;
     allDone(): Promise<void>;
