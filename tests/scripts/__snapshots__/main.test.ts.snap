@@ -44,3 +44,13 @@ Array [
   "id-19",
 ]
 `;
+
+exports[`Test output of the addJobPromised Parallel 1: Uploaded files 1`] = `
+Array [
+  "1.txt",
+  "2.txt",
+  "3.txt",
+  "4.txt",
+  "5.txt",
+]
+`;

@@ -310,3 +310,34 @@ describe('Dyna Job Queue - jobFactory massive calls', () => {
   });
 
 });
+
+
+describe('Test output of the addJobPromised', () => {
+  it('Parallel 1', async () => {
+    const queue = new DynaJobQueue({parallels: 1});
+    const fileNames = getRowArray(5).map(n => String(n + 1));
+    const uploadedFiles: string[] = [];
+
+    await Promise.all(
+      fileNames
+        .map(fileName  => queue.addJobPromised(() => uploadFile(fileName, uploadedFiles)))
+    );
+
+    expect(uploadedFiles).toMatchSnapshot('Uploaded files');
+  });
+
+  const uploadFile = async (fileName: string, files: string[]): Promise<string> => {
+    console.debug('Uploading file', fileName);
+    await new Promise(r => setTimeout(r, 200));
+    files.push(fileName + '.txt');
+    return 'Uploading file ' + fileName + ' completed';
+  };
+
+  const getRowArray = (count: number): number[] =>
+    Array(count)
+      .fill(null)
+      .map((v, index) => {
+        v; // 4TS
+        return index;
+      });
+});
