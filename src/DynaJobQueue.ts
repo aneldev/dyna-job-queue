@@ -9,8 +9,8 @@ export interface IDynaJobQueueStats {
 
 interface IQJob {
   priority: number;
-  callback: Function;
-  internalPriority: number,
+  callback: (done: () => void) => void;
+  internalPriority: number;
 }
 
 export class DynaJobQueue {
@@ -21,14 +21,14 @@ export class DynaJobQueue {
   constructor(private readonly _config: IDynaJobQueueConfig = {}) {
     this._config = {
       parallels: 1,
-      ...this._config
+      ...this._config,
     };
   }
 
   public jobFactory<TResolve>(func: (...params: any[]) => Promise<TResolve>, priority: number = 1): () => Promise<TResolve> {
     return (...params: any[]) => {
       return this.addJobPromised(() => func(...params), priority);
-    }
+    };
   }
 
   public addJobPromised<TResolve>(returnPromise: () => Promise<TResolve>, priority: number = 1): Promise<TResolve> {
@@ -52,7 +52,7 @@ export class DynaJobQueue {
   public addJobPromise<TResolve>(callback: (resolve: (data?: TResolve) => void, reject: (error?: any) => void) => void, priority: number = 1): Promise<TResolve> {
     return new Promise((resolve: (data: any) => void, reject: (error: any) => void) => {
       this.addJobCallback(
-        (done: Function) => callback(
+        (done: () => void) => callback(
           (data: any) => {
             resolve(data);
             done();
@@ -65,7 +65,7 @@ export class DynaJobQueue {
     });
   }
 
-  public addJobCallback(callback: (done: Function) => void, priority: number = 1): void {
+  public addJobCallback(callback: (done: () => void) => void, priority: number = 1): void {
     this.addJob(callback, priority);
   }
 
@@ -85,8 +85,8 @@ export class DynaJobQueue {
     return new Promise(resolve => this._completeCallbacks.push(resolve));
   }
 
-  private addJob(callback: (done: Function) => void, priority: number = 1): void {
-    let job: IQJob = {
+  private addJob(callback: (done: () => void) => void, priority: number = 1): void {
+    const job: IQJob = {
       priority,
       internalPriority: this._createPriorityNumber(priority),
       callback,

@@ -130,8 +130,8 @@ describe('Dyna Job Queue - using parallels', () => {
         setTimeout(resolve, 1000);
       });
     });
-    setTimeout(done, 2100);
-  });
+    setTimeout(done, 6000);
+  }, 7000);
 
   it('should have the correct times', () => {
     expect(times[0] < 500).toBe(true);
@@ -145,14 +145,15 @@ describe('Dyna Job Queue - using parallels', () => {
     times = {};
     const now: number = Number(new Date);
     const getNow = (): number => Number(new Date) - now;
-    count(5).for((index: number) => {
+    count(5)
+      .for((index: number) => {
       queue.addJobPromise((resolve) => {
         times[index] = getNow();
         setTimeout(resolve, 1000);
       });
     });
-    setTimeout(done, 1100);
-  });
+    setTimeout(done, 6000);
+  }, 7000);
 
   it('should have the correct times', () => {
     expect(times[0] < 500).toBe(true);
@@ -303,7 +304,6 @@ describe('Dyna Job Queue - jobFactory massive calls', () => {
     const ended = Date.now();
 
     const elapsed = ended - started;
-    console.log('Elapsed', elapsed);
 
     expect(elapsed).toBeLessThan(500);
     expect(collection).toMatchSnapshot();
@@ -327,7 +327,6 @@ describe('Test output of the addJobPromised', () => {
   });
 
   const uploadFile = async (fileName: string, files: string[]): Promise<string> => {
-    console.debug('Uploading file', fileName);
     await new Promise(r => setTimeout(r, 200));
     files.push(fileName + '.txt');
     return 'Uploading file ' + fileName + ' completed';

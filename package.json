@@ -24,7 +24,7 @@
     "analyze": "set NODE_ENV=development && webpack --config webpack.dist.analyze.config.js",
     "build": "yarn lint && set NODE_ENV=production && rm -rf ./dist; node tsconfig.update.js && tsc --p tsconfig.commonJs.json && tsc --p tsconfig.esNext.json",
     "lint": "eslint -c .eslintrc.js ./src ./tests",
-    "lint-fix": "eslint -c .eslintrc.js --fix ./src ./tests",
+    "lint-fix": "eslint -c .eslintrc.js --fix ./src",
     "test": "jest --coverage --no-cache --runInBand",
     "test-debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
     "test-watch": "jest --watch --verbose --runInBand",
