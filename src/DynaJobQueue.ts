@@ -3,6 +3,7 @@ export interface IDynaJobQueueConfig {
 }
 
 export interface IDynaJobQueueStats {
+  isWorking: boolean;
   jobs: number;
   running: number;
 }
@@ -32,7 +33,10 @@ export class DynaJobQueue {
    * @param priority - Job priority; lower numbers run first. Defaults to 1.
    * @returns A function that enqueues calls to `func` and returns its Promise.
    */
-  public jobFactory<TResolve>(func: (...params: any[]) => Promise<TResolve>, priority: number = 1): () => Promise<TResolve> {
+  public jobFactory<TResolve>(
+    func: (...params: any[]) => Promise<TResolve>,
+    priority: number = 1
+  ): (...params: any[]) => Promise<TResolve> {
     return (...params: any[]) => {
       return this.addJobPromised(() => func(...params), priority);
     }
@@ -49,7 +53,7 @@ export class DynaJobQueue {
     returnPromise: () => Promise<TResolve>,
     priority: number = 1,
   ): Promise<TResolve> {
-    return new Promise((resolve: (resolveData: TResolve) => void, reject: (error: any) => void) => {
+    return new Promise((resolve, reject) => {
       this.addJobCallback(
         (done: () => void) => {
           returnPromise()
@@ -105,7 +109,7 @@ export class DynaJobQueue {
     callback: (resolve: (data?: TResolve) => void, reject: (error?: any) => void) => void,
     priority: number = 1,
   ): Promise<TResolve> {
-    return new Promise((resolve: (data: any) => void, reject: (error: any) => void) => {
+    return new Promise((resolve, reject) => {
       this.addJobCallback(
         (done: Function) => callback(
           (data: any) => {
@@ -137,6 +141,7 @@ export class DynaJobQueue {
    */
   public get stats(): IDynaJobQueueStats {
     return {
+      isWorking: this.isWorking,
       jobs: this._jobs.length,
       running: this._parallels,
     };
@@ -159,13 +164,13 @@ export class DynaJobQueue {
   }
 
   private addJob(callback: (done: Function) => void, priority: number = 1): void {
-    let job: IQJob = {
+    const job: IQJob = {
       priority,
       internalPriority: this._createPriorityNumber(priority),
       callback,
     };
     this._jobs.push(job);
-    this._jobs.sort((jobA: IQJob, jobB: IQJob) => jobA.internalPriority - jobB.internalPriority);
+    this._jobs.sort((jobA, jobB) => jobA.internalPriority - jobB.internalPriority);
     this._execute();
   }
 
@@ -179,10 +184,11 @@ export class DynaJobQueue {
       jobToExecute.callback(() => {
         this._parallels--;
         this._execute();
+
+        if (!this.isWorking) {
+          while (this._completeCallbacks.length) this._completeCallbacks.shift()();
+        }
       });
-    }
-    else {
-      while (this._completeCallbacks.length) this._completeCallbacks.shift()();
     }
   }
 

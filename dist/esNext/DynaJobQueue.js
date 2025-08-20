@@ -154,6 +154,7 @@ var DynaJobQueue = /** @class */ (function () {
          */
         get: function () {
             return {
+                isWorking: this.isWorking,
                 jobs: this._jobs.length,
                 running: this._parallels,
             };
@@ -208,11 +209,12 @@ var DynaJobQueue = /** @class */ (function () {
             jobToExecute.callback(function () {
                 _this._parallels--;
                 _this._execute();
+                // Resolve allDone() callbacks only when NO jobs & NO running tasks
+                if (!_this.isWorking) {
+                    while (_this._completeCallbacks.length)
+                        _this._completeCallbacks.shift()();
+                }
             });
-        }
-        else {
-            while (this._completeCallbacks.length)
-                this._completeCallbacks.shift()();
         }
     };
     DynaJobQueue.prototype._createPriorityNumber = function (priority) {

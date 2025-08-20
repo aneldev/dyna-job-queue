@@ -2,6 +2,7 @@ export interface IDynaJobQueueConfig {
     parallels?: number;
 }
 export interface IDynaJobQueueStats {
+    isWorking: boolean;
     jobs: number;
     running: number;
 }
@@ -18,7 +19,7 @@ export declare class DynaJobQueue {
      * @param priority - Job priority; lower numbers run first. Defaults to 1.
      * @returns A function that enqueues calls to `func` and returns its Promise.
      */
-    jobFactory<TResolve>(func: (...params: any[]) => Promise<TResolve>, priority?: number): () => Promise<TResolve>;
+    jobFactory<TResolve>(func: (...params: any[]) => Promise<TResolve>, priority?: number): (...params: any[]) => Promise<TResolve>;
     /**
      * Adds a job that returns a Promise.
      * @typeParam TResolve - The resolved value type of the Promise.
