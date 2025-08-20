@@ -10,7 +10,7 @@ export interface IDynaJobQueueStats {
 
 interface IQJob {
   priority: number;
-  callback: Function;
+  callback: (done: () => void) => void;
   internalPriority: number,
 }
 
@@ -85,7 +85,7 @@ export class DynaJobQueue {
     this.addJobCallback(
       (done: () => void) => {
         returnPromise()
-          .then(done)
+          .then(() => done())
           .catch((error: any) => {
             console.error('DynaJobQueue.addJobPromisedVoid - Job failed', {
               error,
@@ -111,7 +111,7 @@ export class DynaJobQueue {
   ): Promise<TResolve> {
     return new Promise((resolve, reject) => {
       this.addJobCallback(
-        (done: Function) => callback(
+        (done: () => void) => callback(
           (data: any) => {
             resolve(data);
             done();
@@ -130,7 +130,7 @@ export class DynaJobQueue {
    * @param priority - Job priority; lower numbers run first. Defaults to 1.
    */
   public addJobCallback(
-    callback: (done: Function) => void,
+    callback: (done: () => void) => void,
     priority: number = 1,
   ): void {
     this.addJob(callback, priority);
@@ -163,7 +163,7 @@ export class DynaJobQueue {
     return new Promise(resolve => this._completeCallbacks.push(resolve));
   }
 
-  private addJob(callback: (done: Function) => void, priority: number = 1): void {
+  private addJob(callback: (done: () => void) => void, priority: number = 1): void {
     const job: IQJob = {
       priority,
       internalPriority: this._createPriorityNumber(priority),
