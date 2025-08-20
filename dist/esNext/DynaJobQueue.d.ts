@@ -51,7 +51,7 @@ export declare class DynaJobQueue {
      * @param callback - Function that performs the work; call `done()` when finished.
      * @param priority - Job priority; lower numbers run first. Defaults to 1.
      */
-    addJobCallback(callback: (done: Function) => void, priority?: number): void;
+    addJobCallback(callback: (done: () => void) => void, priority?: number): void;
     /**
      * Returns the current job-queue statistics.
      */

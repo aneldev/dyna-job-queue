@@ -108,7 +108,7 @@ var DynaJobQueue = /** @class */ (function () {
         if (priority === void 0) { priority = 1; }
         this.addJobCallback(function (done) {
             returnPromise()
-                .then(done)
+                .then(function () { return done(); })
                 .catch(function (error) {
                 console.error('DynaJobQueue.addJobPromisedVoid - Job failed', {
                     error: error,
