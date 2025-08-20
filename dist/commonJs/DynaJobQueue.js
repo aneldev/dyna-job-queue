@@ -56,6 +56,9 @@ var DynaJobQueue = /** @class */ (function () {
         this._internalCounter = 0;
         this._config = __assign({ parallels: 1 }, this._config);
     }
+    /**
+     * Creates a function whose calls are added to the queue.
+     */
     DynaJobQueue.prototype.jobFactory = function (func, priority) {
         var _this = this;
         if (priority === void 0) { priority = 1; }
@@ -67,7 +70,18 @@ var DynaJobQueue = /** @class */ (function () {
             return _this.addJobPromised(function () { return func.apply(void 0, params); }, priority);
         };
     };
-    DynaJobQueue.prototype.addJobPromised = function (returnPromise, priority) {
+    /**
+     * Adds a job that returns a Promise.
+     */
+    DynaJobQueue.prototype.addJobPromised = function (
+    /**
+     * Function that executes a Promise as a job.
+     */
+    returnPromise, 
+    /**
+     * Job priority. The higher the number, the higher the priority.
+     */
+    priority) {
         var _this = this;
         if (priority === void 0) { priority = 1; }
         return new Promise(function (resolve, reject) {
@@ -84,7 +98,43 @@ var DynaJobQueue = /** @class */ (function () {
             }, priority);
         });
     };
-    DynaJobQueue.prototype.addJobPromise = function (callback, priority) {
+    /**
+     * Adds a job that returns a Promise but does not return any data.
+     * Any errors will be logged with console.error.
+     *
+     * Useful for fire-and-forget jobs where no result is needed.
+     */
+    DynaJobQueue.prototype.addJobPromisedVoid = function (
+    /**
+     * Function that executes a Promise as a job.
+     */
+    returnPromise, 
+    /**
+     * Job priority. The higher the number, the higher the priority.
+     */
+    priority) {
+        if (priority === void 0) { priority = 1; }
+        this.addJobCallback(function (done) {
+            returnPromise()
+                .then(done)
+                .catch(function (error) {
+                console.error('DynaJobQueue.addJobPromisedVoid - Job failed', {
+                    error: error,
+                    returnPromise: returnPromise,
+                });
+                done();
+            });
+        }, priority);
+    };
+    /**
+     * Adds a job that returns a Promise, based on resolve and reject callbacks.
+     */
+    DynaJobQueue.prototype.addJobPromise = function (
+    /**
+     * Function that executes a Promise as a job.
+     * You must call resolve or reject inside the callback to finish the job.
+     */
+    callback, priority) {
         var _this = this;
         if (priority === void 0) { priority = 1; }
         return new Promise(function (resolve, reject) {
@@ -97,11 +147,20 @@ var DynaJobQueue = /** @class */ (function () {
             }); }, priority);
         });
     };
+    /**
+     * Adds a job by callback.
+     * You must call `done()` to finish the job.
+     * @param callback
+     * @param priority
+     */
     DynaJobQueue.prototype.addJobCallback = function (callback, priority) {
         if (priority === void 0) { priority = 1; }
         this.addJob(callback, priority);
     };
     Object.defineProperty(DynaJobQueue.prototype, "stats", {
+        /**
+         * Returns the current Job Queue statistics.
+         */
         get: function () {
             return {
                 jobs: this._jobs.length,
@@ -112,12 +171,18 @@ var DynaJobQueue = /** @class */ (function () {
         configurable: true
     });
     Object.defineProperty(DynaJobQueue.prototype, "isWorking", {
+        /**
+         * Checks if the queue is active, meaning there are jobs pending or running in parallel.
+         */
         get: function () {
             return !!this._jobs.length || !!this._parallels;
         },
         enumerable: true,
         configurable: true
     });
+    /**
+     * Waits until all jobs are completed.
+     */
     DynaJobQueue.prototype.allDone = function () {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;

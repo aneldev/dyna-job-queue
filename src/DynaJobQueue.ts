@@ -25,13 +25,28 @@ export class DynaJobQueue {
     };
   }
 
+  /**
+   * Creates a function whose calls are added to the queue.
+   */
   public jobFactory<TResolve>(func: (...params: any[]) => Promise<TResolve>, priority: number = 1): () => Promise<TResolve> {
     return (...params: any[]) => {
       return this.addJobPromised(() => func(...params), priority);
     }
   }
 
-  public addJobPromised<TResolve>(returnPromise: () => Promise<TResolve>, priority: number = 1): Promise<TResolve> {
+  /**
+   * Adds a job that returns a Promise.
+   */
+  public addJobPromised<TResolve>(
+    /**
+     * Function that executes a Promise as a job.
+     */
+    returnPromise: () => Promise<TResolve>,
+    /**
+     * Job priority. The higher the number, the higher the priority.
+     */
+    priority: number = 1,
+  ): Promise<TResolve> {
     return new Promise((resolve: (resolveData: TResolve) => void, reject: (error: any) => void) => {
       this.addJobCallback(
         (done: () => void) => {
@@ -49,7 +64,48 @@ export class DynaJobQueue {
     });
   }
 
-  public addJobPromise<TResolve>(callback: (resolve: (data?: TResolve) => void, reject: (error?: any) => void) => void, priority: number = 1): Promise<TResolve> {
+  /**
+   * Adds a job that returns a Promise but does not return any data.
+   * Any errors will be logged with console.error.
+   *
+   * Useful for fire-and-forget jobs where no result is needed.
+   */
+  public addJobPromisedVoid(
+    /**
+     * Function that executes a Promise as a job.
+     */
+    returnPromise: () => Promise<any>,
+    /**
+     * Job priority. The higher the number, the higher the priority.
+     */
+    priority: number = 1,
+  ) {
+    this.addJobCallback(
+      (done: () => void) => {
+        returnPromise()
+          .then(done)
+          .catch((error: any) => {
+            console.error('DynaJobQueue.addJobPromisedVoid - Job failed', {
+              error,
+              returnPromise,
+            });
+            done();
+          });
+      },
+      priority);
+  }
+
+  /**
+   * Adds a job that returns a Promise, based on resolve and reject callbacks.
+   */
+  public addJobPromise<TResolve>(
+    /**
+     * Function that executes a Promise as a job.
+     * You must call resolve or reject inside the callback to finish the job.
+     */
+    callback: (resolve: (data?: TResolve) => void, reject: (error?: any) => void) => void,
+    priority: number = 1,
+  ): Promise<TResolve> {
     return new Promise((resolve: (data: any) => void, reject: (error: any) => void) => {
       this.addJobCallback(
         (done: Function) => callback(
@@ -65,10 +121,19 @@ export class DynaJobQueue {
     });
   }
 
+  /**
+   * Adds a job by callback.
+   * You must call `done()` to finish the job.
+   * @param callback
+   * @param priority
+   */
   public addJobCallback(callback: (done: Function) => void, priority: number = 1): void {
     this.addJob(callback, priority);
   }
 
+  /**
+   * Returns the current Job Queue statistics.
+   */
   public get stats(): IDynaJobQueueStats {
     return {
       jobs: this._jobs.length,
@@ -76,10 +141,16 @@ export class DynaJobQueue {
     };
   }
 
+  /**
+   * Checks if the queue is active, meaning there are jobs pending or running in parallel.
+   */
   public get isWorking(): boolean {
     return !!this._jobs.length || !!this._parallels;
   }
 
+  /**
+   * Waits until all jobs are completed.
+   */
   public async allDone(): Promise<void> {
     if (!this.isWorking) return;
     return new Promise(resolve => this._completeCallbacks.push(resolve));
