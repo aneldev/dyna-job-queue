@@ -1,6 +1,6 @@
 {
   "name": "dyna-job-queue",
-  "version": "5.1.3",
+  "version": "5.2.1",
   "description": "About",
   "repository": {
     "type": "git",
@@ -127,6 +127,6 @@
     "output": "./coverage/junit.xml"
   },
   "dyna": {
-    "changeId": "1c8b94dc-1d456590-89690262328747120"
+    "changeId": "205f8477-1h9cdbae-19475862176257120"
   }
 }
