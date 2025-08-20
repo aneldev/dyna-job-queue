@@ -201,5 +201,3 @@ export class DynaJobQueue {
   }
 
 }
-
-console.debug('DynaJobQueue loaded v33');
