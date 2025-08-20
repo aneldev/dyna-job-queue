@@ -224,5 +224,4 @@ var DynaJobQueue = /** @class */ (function () {
     return DynaJobQueue;
 }());
 export { DynaJobQueue };
-console.debug('DynaJobQueue loaded v33');
 //# sourceMappingURL=DynaJobQueue.js.map
