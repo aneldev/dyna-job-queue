@@ -183,9 +183,11 @@ export class DynaJobQueue {
       this._parallels++;
       jobToExecute.callback(() => {
         this._parallels--;
-        this._execute();
 
-        if (!this.isWorking) {
+        if (this.isWorking) {
+          this._execute()
+        }
+        else {
           while (this._completeCallbacks.length) this._completeCallbacks.shift()();
         }
       });
@@ -199,3 +201,5 @@ export class DynaJobQueue {
   }
 
 }
+
+console.debug('DynaJobQueue loaded v33');

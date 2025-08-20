@@ -210,9 +210,10 @@ var DynaJobQueue = /** @class */ (function () {
             this._parallels++;
             jobToExecute.callback(function () {
                 _this._parallels--;
-                _this._execute();
-                // Resolve allDone() callbacks only when NO jobs & NO running tasks
-                if (!_this.isWorking) {
+                if (_this.isWorking) {
+                    _this._execute();
+                }
+                else {
                     while (_this._completeCallbacks.length)
                         _this._completeCallbacks.shift()();
                 }
@@ -225,4 +226,5 @@ var DynaJobQueue = /** @class */ (function () {
     return DynaJobQueue;
 }());
 exports.DynaJobQueue = DynaJobQueue;
+console.debug('DynaJobQueue loaded v33');
 //# sourceMappingURL=DynaJobQueue.js.map
