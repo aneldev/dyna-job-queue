@@ -1,47 +1,115 @@
-﻿// help: http://webpack.github.io/docs/configuration.html
-// help: https://webpack.github.io/docs/webpack-dev-server.html#webpack-dev-server-cli
 const fs = require('fs');
 const path = require('path');
-const webpack = require('webpack');
 const nodeExternals = require('webpack-node-externals');
+const buffer = require.resolve("buffer");
+
+const isSingleModule =
+  fs.existsSync('./src/index.ts') ||
+  fs.existsSync('./src/index.tsx');
 
 const package_ = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
-const rules = require('./webpack.loaders');
-const plugins = require('./webpack.plugins');
+const loaders = require('./webpack.loaders.js');
+const plugins = require('./webpack.plugins.js');
 
-const config = {
-  mode: "development",  // do not minify the code, this part of the app, not of the module
-  target: 'web',        // help: https://webpack.github.io/docs/configuration.html#target
-  entry: './src/index.ts',
-  externals: [nodeExternals()].concat(['fs', 'path']), // in order to ignore all modules in node_modules folder
-  optimization: {
-    usedExports: true,       // true to remove the dead code, for more https://webpack.js.org/guides/tree-shaking/
+/**
+ * Exclude src/? folders when not in single mode
+ * @type {string[]}
+ */
+const EXCLUDE_SRC_FOLDERS = [
+  "@types",
+  // Other folders that won't be built by Webpack might be listed here
+];
+
+const getModuleNames =
+  root =>
+    fs.readdirSync(root, {withFileTypes: true})
+      .filter(dirent => dirent.isDirectory())
+      .filter(dirent => !EXCLUDE_SRC_FOLDERS.includes(dirent.name))
+      .map(dirent => dirent.name);
+
+const moduleNames = getModuleNames('./src');
+
+process.traceDeprecation = true;
+
+const entry =
+  isSingleModule
+    ? (
+      // Classic export of the /src/index.ts
+      [
+        path.resolve(__dirname, 'src/index.ts')
+      ]
+    )
+    : (
+      // Multiple module exports of the /src/<Module name>/index.ts
+      moduleNames
+        .reduce((acc, entry) => {
+          acc[entry] = `./src/${entry}`;
+          return acc;
+        }, {})
+    );
+
+/**
+ * The package is distributed in two formats, built by two webpack configs:
+ * - `umd`: dist/index.js — loadable via `require()` (CommonJS), AMD or a <script> tag
+ * - `esm`: dist/index.mjs — native `import`, tree-shakeable by consumer bundlers
+ * The `exports` map of the package.json routes the consumers to the right file.
+ */
+const createConfig = format => ({
+  mode: "development",          // distribute it without minification
+  target:
+    format === 'esm'
+      ? ['node', 'es2022']      // es2022 environment is needed for module output
+      : "node",
+  entry,
+  externals: nodeExternals(
+    format === 'esm'
+      ? {importType: 'module'}  // reference externals with `import` instead of `require`
+      : undefined,
+  ),
+  experiments: {
+    outputModule: format === 'esm',
   },
-  devtool: "source-map",     // help: https://webpack.js.org/configuration/devtool/
+  optimization: {
+    // help: https://webpack.js.org/guides/tree-shaking/
+    usedExports: true,  // true to remove the dead code,
+  },
+  devtool: "source-map",        // help: https://webpack.js.org/configuration/devtool/
+  // Every folder of ./src is a standalone exported module
   output: {
-    path: path.resolve(__dirname, 'temp/dist'),
-    filename: '[name].js',
-    publicPath: '/temp/dist/',
-    library: package_.name,
-    libraryTarget: 'umd',
-    umdNamedDefine: true
+    path: path.resolve(__dirname, 'dist'),
+    publicPath: '/dist/',
+    filename:
+      (isSingleModule
+        ? ''                    // Classic export of the /src/index.ts
+        : '[name]/')            // Multiple module exports of the /src/<Module name>/index.ts
+      + (format === 'esm' ? 'index.mjs' : 'index.js'),
+    library:
+      format === 'esm'
+        ? {type: 'module'}
+        : {
+          name: package_.name,
+          type: 'umd',
+          umdNamedDefine: true,
+        },
+    // No `clean` here: both configs emit into ./dist in parallel and would
+    // delete each other's output; the build scripts rimraf ./dist instead.
   },
   resolve: {
     alias: {},
-    extensions: [".webpack.js", ".web.js", ".ts", ".tsx", ".js", ".jsx"]
+    extensions: [".webpack.js", ".web.js", ".ts", ".tsx", ".js", ".jsx"],
+    fallback: {
+      stream: buffer,
+    }
   },
   module: {
-    rules,
+    rules: loaders.module.rules,
   },
-  node: {
-    // universal app? place here your conditional imports for node env
-    fs: "empty",
-    path: "empty",
-    child_process: "empty",
-  },
-  plugins: [
-    new webpack.NamedModulesPlugin(),             // prints more readable module names in the browser console on HMR updates
-  ].concat(plugins),
-};
+  // The d.ts build and the circular-dependency check need to run only once,
+  // so the plugins are applied to the UMD config only
+  plugins: format === 'umd' ? plugins.plugins : [],
+});
 
-module.exports = config;
+module.exports = [
+  createConfig('umd'),
+  createConfig('esm'),
+];

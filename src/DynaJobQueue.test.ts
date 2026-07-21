@@ -1,12 +1,12 @@
-import "jest";
-import {DynaJobQueue} from '../../src';
-import { count } from "dyna-count";
+/* eslint-disable jest/no-done-callback, jest/no-conditional-expect, jest/no-identical-title, @typescript-eslint/ban-types, no-empty */
+import {DynaJobQueue} from "./DynaJobQueue";
+import {count} from "dyna-count";
 
-// help: https://facebook.github.io/jest/docs/expect.html
+// Help: https://facebook.github.io/jest/docs/expect.html
 
 describe('Dyna Job Queue - using addJobCallback()', () => {
 
-  let queue = new DynaJobQueue();
+  const queue = new DynaJobQueue();
   const testCollectedData: any[] = [];
 
   it('expects the pending jobs should 0', () => {
@@ -23,6 +23,11 @@ describe('Dyna Job Queue - using addJobCallback()', () => {
         }, 300);
       });
     });
+    // The first job starts synchronously on add; the other 9 wait in the queue
+    expect(queue.isWorking).toBe(true);
+    expect(queue.stats.running).toBe(1);
+    expect(queue.stats.jobs).toBe(9);
+    expect(testCollectedData).toEqual(['start 0']);
   });
 
   it(`expects the pending jobs to be 9 and one is started to working`, () => {
@@ -52,25 +57,25 @@ describe('Dyna Job Queue - using addJobCallback()', () => {
 });
 
 describe('Dyna Job Queue - using addJobPromise()', () => {
-  let queue = new DynaJobQueue();
+  const queue = new DynaJobQueue();
   const testCollectedData: any[] = [];
 
   it(`should push 10 jobs`, (done: Function) => {
-    for (let i: number = 0; i < 10; i++) {
-      queue.addJobPromise((resolve: Function, reject: Function) => {
+    for (let i = 0; i < 10; i++) {
+      queue.addJobPromise((resolve: Function) => {
         setTimeout(() => {
-          let data: any = {index: i};
+          const data: any = {index: i};
           testCollectedData.push(data);
           expect(queue.isWorking).toBe(true);
           resolve(data);
         }, 100);
       }, 2)
         .then((data: any) => {
-          let lastIndexValue: number = testCollectedData[testCollectedData.length - 1].index;
+          const lastIndexValue: number = testCollectedData[testCollectedData.length - 1].index;
           expect(lastIndexValue).toBe(i);
           expect(data.index).toBe(i);
-          if (lastIndexValue == 9) expect(queue.isWorking).toBe(false);
-          if (lastIndexValue == 9) done();
+          if (lastIndexValue === 9) expect(queue.isWorking).toBe(false);
+          if (lastIndexValue === 9) done();
         });
     }
   });
@@ -82,15 +87,15 @@ describe('Dyna Job Queue - using addJobPromise()', () => {
 });
 
 describe('Dyna Job Queue - using addJobPromised()', () => {
-  let queue = new DynaJobQueue();
+  const queue = new DynaJobQueue();
   const testCollectedData: any[] = [];
 
   it(`should push 10 jobs`, (done: Function) => {
-    for (let i: number = 0; i < 10; i++) {
+    for (let i = 0; i < 10; i++) {
       queue.addJobPromised(() => {
         return new Promise((resolve: (date: any) => void) => {
           setTimeout(() => {
-            let data: any = {index: i};
+            const data: any = {index: i};
             testCollectedData.push(data);
             expect(queue.isWorking).toBe(true);
             resolve(data);
@@ -98,11 +103,11 @@ describe('Dyna Job Queue - using addJobPromised()', () => {
         });
       }, 2)
         .then((data: any) => {
-          let lastIndexValue: number = testCollectedData[testCollectedData.length - 1].index;
+          const lastIndexValue: number = testCollectedData[testCollectedData.length - 1].index;
           expect(lastIndexValue).toBe(i);
           expect(data.index).toBe(i);
-          if (lastIndexValue == 9) expect(queue.isWorking).toBe(false);
-          if (lastIndexValue == 9) done();
+          if (lastIndexValue === 9) expect(queue.isWorking).toBe(false);
+          if (lastIndexValue === 9) done();
         });
     }
   });
@@ -114,54 +119,73 @@ describe('Dyna Job Queue - using addJobPromised()', () => {
 });
 
 describe('Dyna Job Queue - using parallels', () => {
-  let queue = new DynaJobQueue({parallels: 3});
+  const queue = new DynaJobQueue({parallels: 3});
   let times: { [index: string]: number };
 
   it('should push 5 jobs', (done: Function) => {
     times = {};
-    const now: number = Number(new Date);
-    const getNow = (): number => Number(new Date) - now;
+    const now = Number(new Date());
+    const getNow = (): number => Number(new Date()) - now;
     count(5).for((index: number) => {
       queue.addJobPromise((resolve: Function) => {
         times[index] = getNow();
         setTimeout(resolve, 1000);
       });
     });
-    setTimeout(done, 2100);
+    // With parallels: 3, three jobs start immediately and two wait in the queue
+    expect(queue.stats.running).toBe(3);
+    expect(queue.stats.jobs).toBe(2);
+    setTimeout(() => {
+      // After 2 rounds of 1000ms all 5 jobs have started and finished
+      expect(Object.keys(times).length).toBe(5);
+      expect(queue.isWorking).toBe(false);
+      done();
+    }, 2100);
   });
 
   it('should have the correct times', () => {
-    expect(times[0] < 500).toBe(true);
-    expect(times[1] < 500).toBe(true);
-    expect(times[2] < 500).toBe(true);
-    expect(times[3] > 1000).toBe(true);
-    expect(times[4] > 1000).toBe(true);
+    // The first 3 jobs start immediately; the last 2 start once a 1000ms job completes
+    expect(times[0]).toBeLessThan(500);
+    expect(times[1]).toBeLessThan(500);
+    expect(times[2]).toBeLessThan(500);
+    expect(times[3]).toBeGreaterThanOrEqual(1000);
+    expect(times[4]).toBeGreaterThanOrEqual(1000);
   });
 
   it('should push 5 jobs (again)', (done: Function) => {
     times = {};
-    const now: number = Number(new Date);
-    const getNow = (): number => Number(new Date) - now;
+    const now = Number(new Date());
+    const getNow = (): number => Number(new Date()) - now;
     count(5).for((index: number) => {
       queue.addJobPromise((resolve: Function) => {
         times[index] = getNow();
         setTimeout(resolve, 1000);
       });
     });
-    setTimeout(done, 1100);
+    // With parallels: 3, three jobs start immediately and two wait in the queue
+    expect(queue.stats.running).toBe(3);
+    expect(queue.stats.jobs).toBe(2);
+    setTimeout(() => {
+      // After 1100ms the first 3 jobs have finished and the last 2 are still running
+      expect(Object.keys(times).length).toBe(5);
+      expect(queue.stats.running).toBe(2);
+      expect(queue.isWorking).toBe(true);
+      done();
+    }, 1100);
   });
 
   it('should have the correct times', () => {
-    expect(times[0] < 500).toBe(true);
-    expect(times[1] < 500).toBe(true);
-    expect(times[2] < 500).toBe(true);
-    expect(times[3] > 1000).toBe(true);
-    expect(times[4] > 1000).toBe(true);
+    // The first 3 jobs start immediately; the last 2 start once a 1000ms job completes
+    expect(times[0]).toBeLessThan(500);
+    expect(times[1]).toBeLessThan(500);
+    expect(times[2]).toBeLessThan(500);
+    expect(times[3]).toBeGreaterThanOrEqual(1000);
+    expect(times[4]).toBeGreaterThanOrEqual(1000);
   });
 });
 
 describe('Dyna Job Queue - jobFunction', () => {
-  let queue = new DynaJobQueue({parallels: 3});
+  const queue = new DynaJobQueue({parallels: 3});
 
   class NewsFeeder {
     private readonly feeds: number[] = [];
@@ -199,7 +223,7 @@ describe('Dyna Job Queue - jobFunction', () => {
         expect(feeds[0]).toBe(12);
         newsFeeder.clearFeeds();
         done();
-      })
+      });
   });
 
   it('adds items with different delay', (done: Function) => {
@@ -221,11 +245,11 @@ describe('Dyna Job Queue - allDone() at the end', () => {
   let text = "";
 
   let addText = (subText: string) => {
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       setTimeout(() => {
         text += subText;
         resolve();
-      }, 200)
+      }, 200);
     });
   };
   addText = queue.jobFactory(addText);
@@ -246,11 +270,11 @@ describe('Dyna Job Queue - allDone() after first job', () => {
   let text = "";
 
   let addText = (subText: string) => {
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       setTimeout(() => {
         text += subText;
         resolve();
-      }, 200)
+      }, 200);
     });
   };
   addText = queue.jobFactory(addText);
@@ -271,30 +295,30 @@ describe('Dyna Job Queue - allDone() after first job', () => {
 
 describe('Dyna Job Queue - jobFactory massive calls', () => {
   const queue = new DynaJobQueue({parallels: 1});
-  let collection: string[] = [];
+  const collection: string[] = [];
 
   let addText = async (text: string) => {
     collection.push(text);
-    await new Promise(r => setTimeout(r, 0))
+    await new Promise(r => setTimeout(r, 0));
   };
 
   addText = queue.jobFactory(addText);
 
-  it('the jobs are called quickly on massive calls', async (done) => {
+  it('the jobs are called quickly on massive calls', async () => {
     const started = Date.now();
 
     await new Promise(r => setTimeout(r, 100));
 
     await Promise.all(
       count(20)
-        .map(index=> addText(`id-${index}`))
+        .map(index=> addText(`id-${index}`)),
     );
 
     await new Promise(r => setTimeout(r, 100));
 
     await Promise.all(
       count(20)
-        .map(index=> addText(`id-${index}`))
+        .map(index=> addText(`id-${index}`)),
     );
 
     const ended = Date.now();
@@ -304,8 +328,6 @@ describe('Dyna Job Queue - jobFactory massive calls', () => {
 
     expect(elapsed).toBeLessThan(500);
     expect(collection).toMatchSnapshot();
-
-    done();
   });
 
 });
