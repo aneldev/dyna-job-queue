@@ -55,11 +55,11 @@ export declare class DynaJobQueue {
     /**
      * Returns the current job-queue statistics.
      */
-    readonly stats: IDynaJobQueueStats;
+    get stats(): IDynaJobQueueStats;
     /**
      * Indicates whether the queue is active (pending jobs or running workers).
      */
-    readonly isWorking: boolean;
+    get isWorking(): boolean;
     /**
      * Resolves when all queued jobs have completed and none are running.
      * @returns A Promise that resolves once the queue is idle.
@@ -70,3 +70,4 @@ export declare class DynaJobQueue {
     private _internalCounter;
     private _createPriorityNumber;
 }
+//# sourceMappingURL=DynaJobQueue.d.ts.map

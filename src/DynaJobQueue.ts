@@ -11,18 +11,18 @@ export interface IDynaJobQueueStats {
 interface IQJob {
   priority: number;
   callback: (done: () => void) => void;
-  internalPriority: number,
+  internalPriority: number;
 }
 
 export class DynaJobQueue {
   private _jobs: IQJob[] = [];
-  private _parallels: number = 0;
+  private _parallels = 0;
   private readonly _completeCallbacks: any[] = [];
 
   constructor(private readonly _config: IDynaJobQueueConfig = {}) {
     this._config = {
       parallels: 1,
-      ...this._config
+      ...this._config,
     };
   }
 
@@ -35,11 +35,11 @@ export class DynaJobQueue {
    */
   public jobFactory<TResolve>(
     func: (...params: any[]) => Promise<TResolve>,
-    priority: number = 1
+    priority = 1,
   ): (...params: any[]) => Promise<TResolve> {
     return (...params: any[]) => {
       return this.addJobPromised(() => func(...params), priority);
-    }
+    };
   }
 
   /**
@@ -51,7 +51,7 @@ export class DynaJobQueue {
    */
   public addJobPromised<TResolve>(
     returnPromise: () => Promise<TResolve>,
-    priority: number = 1,
+    priority = 1,
   ): Promise<TResolve> {
     return new Promise((resolve, reject) => {
       this.addJobCallback(
@@ -80,7 +80,7 @@ export class DynaJobQueue {
    */
   public addJobPromisedVoid(
     returnPromise: () => Promise<any>,
-    priority: number = 1,
+    priority = 1,
   ): void {
     this.addJobCallback(
       (done: () => void) => {
@@ -107,7 +107,7 @@ export class DynaJobQueue {
    */
   public addJobPromise<TResolve>(
     callback: (resolve: (data?: TResolve) => void, reject: (error?: any) => void) => void,
-    priority: number = 1,
+    priority = 1,
   ): Promise<TResolve> {
     return new Promise((resolve, reject) => {
       this.addJobCallback(
@@ -131,7 +131,7 @@ export class DynaJobQueue {
    */
   public addJobCallback(
     callback: (done: () => void) => void,
-    priority: number = 1,
+    priority = 1,
   ): void {
     this.addJob(callback, priority);
   }
@@ -163,7 +163,7 @@ export class DynaJobQueue {
     return new Promise(resolve => this._completeCallbacks.push(resolve));
   }
 
-  private addJob(callback: (done: () => void) => void, priority: number = 1): void {
+  private addJob(callback: (done: () => void) => void, priority = 1): void {
     const job: IQJob = {
       priority,
       internalPriority: this._createPriorityNumber(priority),
@@ -185,7 +185,7 @@ export class DynaJobQueue {
         this._parallels--;
 
         if (this.isWorking) {
-          this._execute()
+          this._execute();
         }
         else {
           while (this._completeCallbacks.length) this._completeCallbacks.shift()();
@@ -194,7 +194,7 @@ export class DynaJobQueue {
     }
   }
 
-  private _internalCounter: number = 0;
+  private _internalCounter = 0;
 
   private _createPriorityNumber(priority: number): number {
     return Number(("000000000000000" + priority).substr(-15) + '0' + ("0000000000" + (++this._internalCounter)).substr(-10));

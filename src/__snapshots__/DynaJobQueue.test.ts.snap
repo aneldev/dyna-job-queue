@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Dyna Job Queue - jobFactory massive calls the jobs are called quickly on massive calls 1`] = `
-Array [
+[
   "id-0",
   "id-1",
   "id-2",
