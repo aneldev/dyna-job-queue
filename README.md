@@ -178,3 +178,7 @@ For universal apps you should import with lazy load.
 ## v5.1.0
 
 New method `allDone()`.
+
+## v6
+
+- Support ESM build at the same time
